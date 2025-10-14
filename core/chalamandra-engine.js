@@ -1,124 +1,125 @@
-class CholamandraEngine {
+class ChalamandraEngine {
   constructor() {
     this.sarcasmDetector = new SarcasmDetector();
     this.multimodalAnalyzer = new MultimodalAnalyzer();
     this.explainableAI = new ExplainableAI();
+    this.hybridOrchestrator = new HybridOrchestrator();
   }
 
-  async analizarComunicacion(contenido, modo = 'quick') {
+  async analyzeCommunication(content, mode = 'quick') {
     try {
-      console.log('🦎 Chalamandra analizando comunicación...', { modo });
+      console.log('🦎 Chalamandra analyzing communication...', { mode });
       
-      const analisisBase = await this.analisisRapidoLocal(contenido);
+      const baseAnalysis = await this.quickLocalAnalysis(content);
       
-      if (modo === 'deep' || modo === 'multimodal') {
-        const analisisAvanzado = await this.analisisProfundoHibrido(contenido, analisisBase);
-        return this.sintetizarResultados(analisisBase, analisisAvanzado);
+      if (mode === 'deep' || mode === 'multimodal') {
+        const advancedAnalysis = await this.deepHybridAnalysis(content, baseAnalysis);
+        return this.synthesizeResults(baseAnalysis, advancedAnalysis);
       }
       
-      return analisisBase;
+      return baseAnalysis;
       
     } catch (error) {
-      console.error('Error en análisis:', error);
-      return this.fallbackAnalysis(contenido);
+      console.error('Analysis error:', error);
+      return this.fallbackAnalysis(content);
     }
   }
 
-  async analisisRapidoLocal(contenido) {
+  async quickLocalAnalysis(content) {
     if (typeof ai !== 'undefined' && ai.prompt) {
-      const analisis = await ai.prompt({
-        text: contenido.text,
+      const analysis = await ai.prompt({
+        text: content.text,
         instructions: `
-          Analizar comunicación profesional en dimensiones:
-          1. ESTRATÉGICA: dinámicas poder, agendas ocultas, negociación
-          2. EMOCIONAL: tono, subtexto, factores psicológicos
-          3. RELACIONAL: confianza, conexiones, señales sociales
+          Analyze professional communication across dimensions:
+          1. STRATEGIC: power dynamics, hidden agendas, negotiation
+          2. EMOTIONAL: tone, subtext, psychological factors
+          3. RELATIONAL: trust, connections, social signals
           
-          Retornar JSON estructurado con scores 0-100.
+          Return structured JSON with 0-100 scores.
         `
       });
-      return this.procesarRespuestaIA(analisis);
+      return this.processAIResponse(analysis);
     }
     
-    return this.analisisHeuristico(contenido);
+    return this.heuristicAnalysis(content);
   }
 
-  async analisisProfundoHibrido(contenido, analisisBase) {
-    const analisisMultimodal = await this.multimodalAnalyzer.detectarIncongruencia(
-      contenido.text,
-      contenido.imagenes
+  async deepHybridAnalysis(content, baseAnalysis) {
+    const multimodalAnalysis = await this.multimodalAnalyzer.detectIncongruence(
+      content.text,
+      content.images
     );
     
-    const explicaciones = await this.explainableAI.generarExplicaciones(
-      analisisBase,
-      contenido.text
+    const explanations = await this.explainableAI.generateExplanations(
+      baseAnalysis,
+      content.text
     );
     
     return {
-      ...analisisMultimodal,
-      explicaciones,
-      modo: 'hibrido',
+      ...multimodalAnalysis,
+      explanations,
+      mode: 'hybrid',
       timestamp: new Date().toISOString()
     };
   }
 
-  analisisHeuristico(contenido) {
+  heuristicAnalysis(content) {
     return {
-      estrategico: {
-        poderDinamicas: 'balanceado',
-        agendasOcultas: 'no detectadas',
-        negociacion: 'contexto estandar'
+      strategic: {
+        powerDynamics: 'balanced',
+        hiddenAgendas: 'not detected',
+        negotiation: 'standard context'
       },
-      emocional: {
-        tono: 'profesional',
+      emotional: {
+        tone: 'professional',
         score: 75,
-        subtexto: 'comunicacion directa'
+        subtext: 'direct communication'
       },
-      relacional: {
-        confianza: 'nivel profesional',
-        conexiones: 'contexto colaborativo'
+      relational: {
+        trust: 'professional level',
+        connections: 'collaborative context'
       },
-      modo: 'fallback',
+      mode: 'fallback',
       confidence: 0.7
     };
   }
 
-  sintetizarResultados(...analisis) {
+  synthesizeResults(...analyses) {
     return {
-      perfilComunicacion: this.crearPerfilRadar(analisis),
-      riesgos: this.calcularRiesgos(analisis),
-      recomendaciones: this.generarRecomendaciones(analisis),
-      explicaciones: this.combinarExplicaciones(analisis)
+      communicationProfile: this.createRadarProfile(analyses),
+      risks: this.calculateRisks(analyses),
+      recommendations: this.generateRecommendations(analyses),
+      explanations: this.combineExplanations(analyses)
     };
   }
 
-  crearPerfilRadar(analisis) {
+  createRadarProfile(analyses) {
     return {
-      claridad: this.promedio(analisis, 'claridad') || 85,
-      calidez: this.promedio(analisis, 'calidez') || 70,
-      formalidad: this.promedio(analisis, 'formalidad') || 80,
-      accionabilidad: this.promedio(analisis, 'accionabilidad') || 75,
-      riesgoRelacional: this.promedio(analisis, 'riesgoRelacional') || 20,
-      sarcasmo: this.promedio(analisis, 'sarcasmo') || 15
+      clarity: this.average(analyses, 'clarity') || 85,
+      warmth: this.average(analyses, 'warmth') || 70,
+      formality: this.average(analyses, 'formality') || 80,
+      actionability: this.average(analyses, 'actionability') || 75,
+      relationalRisk: this.average(analyses, 'relationalRisk') || 20,
+      sarcasm: this.average(analyses, 'sarcasm') || 15
     };
   }
 
-  promedio(analisis, clave) {
-    const valores = analisis.map(a => a[clave]).filter(v => v != null);
-    return valores.length ? valores.reduce((a, b) => a + b) / valores.length : null;
+  average(analyses, key) {
+    const values = analyses.map(a => a[key]).filter(v => v != null);
+    return values.length ? values.reduce((a, b) => a + b) / values.length : null;
   }
 
-  procesarRespuestaIA(respuesta) {
+  processAIResponse(response) {
     try {
-      if (typeof respuesta === 'string') {
-        const jsonMatch = respuesta.match(/\{[\s\S]*\}/);
+      if (typeof response === 'string') {
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           return JSON.parse(jsonMatch[0]);
         }
       }
-      return typeof respuesta === 'object' ? respuesta : this.analisisHeuristico();
+      return typeof response === 'object' ? response : this.heuristicAnalysis();
     } catch (error) {
-      return this.analisisHeuristico();
+      return this.heuristicAnalysis();
     }
   }
-}
+  }
