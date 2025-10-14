@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>🦎 Chalamandra Core</h1>
+      <p class="subtitle">Your AI Communication Intelligence Assistant</p>
+      
+      <div class="problem-stats">
+        <div class="stat">
+          <span class="stat-number">44%</span>
+          <span class="stat-label">emails misinterpreted</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">$1.2T</span>
+          <span class="stat-label">annual cost</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="analysis-controls">
+      <button id="quickAnalysis" class="btn primary">Quick Analysis 🚀</button>
+      <button id="deepAnalysis" class="btn secondary">Deep Analysis 🔍</button>
+      <button id="multimodalAnalysis" class="btn tertiary">+ Images 🎭</button>
+    </div>
+
+    <div class="status" id="status">
+      <div class="loader"></div>
+      <span>Chalamandra analyzing communication...</span>
+    </div>
+
+    <div class="results" id="results" style="display: none;">
+      <!-- Radar Visualization -->
+      <div class="radar-section">
+        <h3>🎯 Communication Profile</h3>
+        <div class="radar-container">
+          <canvas id="communicationRadar" width="250" height="250"></canvas>
+        </div>
+        <div class="risk-level" id="riskLevel">
+          <span class="risk-badge low">LOW RISK</span>
+        </div>
+      </div>
+
+      <!-- Dimension Analysis -->
+      <div class="dimensions">
+        <div class="dimension strategic">
+          <h4>🧠 Strategic Intelligence</h4>
+          <div class="content" id="strategic-content">
+            <p>Analyzing power dynamics and negotiation...</p>
+          </div>
+        </div>
+        
+        <div class="dimension emotional">
+          <h4>💫 Emotional Intelligence</h4>
+          <div class="content" id="emotional-content">
+            <div class="tone-meter">
+              <div class="tone-bar">
+                <div class="tone-fill" id="tone-fill" style="width: 50%;"></div>
+              </div>
+              <span class="tone-value" id="tone-value">Neutral</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dimension relational">
+          <h4>🔗 Relational Dynamics</h4>
+          <div class="content" id="relational-content">
+            <p>Evaluating trust and connections...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- XAI Explanations -->
+      <div class="explanations" id="explanations" style="display: none;">
+        <h4>🔍 Analysis Explanation</h4>
+        <div class="explanation-content" id="explanation-content"></div>
+      </div>
+
+      <!-- API Usage -->
+      <div class="api-demo">
+        <h4>🔧 Chrome AI APIs Used</h4>
+        <div class="api-grid">
+          <div class="api-item active" data-api="prompt">
+            <span class="api-icon">💬</span>
+            <span class="api-name">Prompt API</span>
+          </div>
+          <div class="api-item" data-api="summarizer">
+            <span class="api-icon">📊</span>
+            <span class="api-name">Summarizer API</span>
+          </div>
+          <div class="api-item" data-api="rewriter">
+            <span class="api-icon">✍️</span>
+            <span class="api-name">Rewriter API</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="error" id="error" style="display: none;">
+      <p>❌ Cannot analyze this page. Try a page with text content.</p>
+    </div>
+
+    <footer class="footer">
+      <div class="privacy-badge">🔒 100% Local Processing</div>
+      <div class="impact">🎯 Solves $1.2T problems</div>
+    </footer>
+  </div>
+
+  <script src="radar-visualization.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
