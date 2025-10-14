@@ -1,0 +1,140 @@
+/* In-page styles for Chalamandra Core analysis enhancements */
+
+.chalamandra-highlight-positive {
+  background-color: rgba(78, 205, 196, 0.2);
+  border-left: 3px solid #4ecdc4;
+  padding: 2px 4px;
+  margin: 1px 0;
+  border-radius: 2px;
+}
+
+.chalamandra-highlight-negative {
+  background-color: rgba(255, 107, 107, 0.2);
+  border-left: 3px solid #ff6b6b;
+  padding: 2px 4px;
+  margin: 1px 0;
+  border-radius: 2px;
+}
+
+.chalamandra-highlight-risk {
+  background-color: rgba(255, 167, 38, 0.2);
+  border-left: 3px solid #ffa726;
+  padding: 2px 4px;
+  margin: 1px 0;
+  border-radius: 2px;
+}
+
+.chalamandra-analysis-tooltip {
+  position: absolute;
+  background: rgba(22, 33, 62, 0.95);
+  border: 1px solid #ff6b35;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #e0e0e0;
+  z-index: 10001;
+  max-width: 250px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.chalamandra-analysis-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 10px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #ff6b35;
+}
+
+.chalamandra-tooltip-title {
+  color: #ff6b35;
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.chalamandra-tooltip-content {
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* Email client specific styles */
+.gmail-content .chalamandra-highlight-positive,
+.outlook-content .chalamandra-highlight-positive {
+  background-color: rgba(78, 205, 196, 0.15);
+}
+
+.gmail-content .chalamandra-highlight-negative,
+.outlook-content .chalamandra-highlight-negative {
+  background-color: rgba(255, 107, 107, 0.15);
+}
+
+/* LinkedIn specific styles */
+.linkedin-content .chalamandra-highlight-positive,
+.linkedin-content .chalamandra-highlight-negative {
+  border-radius: 4px;
+  padding: 1px 3px;
+}
+
+/* Slack/Discord specific styles */
+.slack-content .chalamandra-highlight-positive,
+.discord-content .chalamandra-highlight-positive {
+  background-color: rgba(78, 205, 196, 0.1);
+}
+
+.slack-content .chalamandra-highlight-negative,
+.discord-content .chalamandra-highlight-negative {
+  background-color: rgba(255, 107, 107, 0.1);
+}
+
+/* Animation for highlights */
+@keyframes chalamandraPulse {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(255, 107, 53, 0.1); }
+  100% { background-color: transparent; }
+}
+
+.chalamandra-new-highlight {
+  animation: chalamandraPulse 2s ease-in-out;
+}
+
+/* Responsive design for overlay */
+@media (max-width: 768px) {
+  .chalamandra-overlay {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+  
+  .chalamandra-analysis-tooltip {
+    max-width: 200px;
+    font-size: 11px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .chalamandra-overlay {
+    background: rgba(12, 12, 12, 0.95);
+  }
+  
+  .chalamandra-analysis-tooltip {
+    background: rgba(12, 12, 12, 0.95);
+  }
+}
+
+/* Print styles - hide analysis elements when printing */
+@media print {
+  .chalamandra-overlay,
+  .chalamandra-analysis-tooltip,
+  .chalamandra-highlight-positive,
+  .chalamandra-highlight-negative,
+  .chalamandra-highlight-risk {
+    display: none !important;
+  }
+}
