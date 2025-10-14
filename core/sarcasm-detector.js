@@ -1,79 +1,84 @@
 class SarcasmDetector {
   constructor() {
-    this.patronesSarcasmo = {
+    this.sarcasmPatterns = {
       textual: [
-        'excesiva_positividad',
-        'hiperbole_inesperada', 
-        'contradiccion_contextual',
-        'lenguaje_pasivo_agresivo'
+        'excessive_positivity',
+        'unexpected_hyperbole', 
+        'contextual_contradiction',
+        'passive_aggressive_language'
+      ],
+      visual: [
+        'incongruent_emoji',
+        'contradictory_image',
+        'sarcastic_formatting'
       ]
     };
   }
 
-  async detectarSarcasmo(texto, contextoVisual = null) {
-    const analisisTextual = this.analizarPatronesTextuales(texto);
-    const analisisVisual = contextoVisual ? 
-      await this.analizarContextoVisual(contextoVisual) : 
-      { score: 0, patrones: [] };
+  async detectSarcasm(text, visualContext = null) {
+    const textualAnalysis = this.analyzeTextualPatterns(text);
+    const visualAnalysis = visualContext ? 
+      await this.analyzeVisualContext(visualContext) : 
+      { score: 0, patterns: [] };
 
-    return this.combinarAnalisis(analisisTextual, analisisVisual);
+    return this.combineAnalyses(textualAnalysis, visualAnalysis);
   }
 
-  analizarPatronesTextuales(texto) {
-    const patronesDetectados = [];
+  analyzeTextualPatterns(text) {
+    const detectedPatterns = [];
     let score = 0;
 
-    if (this.tieneExcesivaPositividad(texto)) {
-      patronesDetectados.push('excesiva_positividad');
+    if (this.hasExcessivePositivity(text)) {
+      detectedPatterns.push('excessive_positivity');
       score += 25;
     }
 
-    if (this.tieneHiperbole(texto)) {
-      patronesDetectados.push('hiperbole_inesperada');
+    if (this.hasHyperbole(text)) {
+      detectedPatterns.push('unexpected_hyperbole');
       score += 30;
     }
 
-    if (this.tieneContradicciones(texto)) {
-      patronesDetectados.push('contradiccion_contextual');
+    if (this.hasContradictions(text)) {
+      detectedPatterns.push('contextual_contradiction');
       score += 35;
     }
 
-    if (this.tieneLenguajePasivoAgresivo(texto)) {
-      patronesDetectados.push('lenguaje_pasivo_agresivo');
+    if (this.hasPassiveAggressiveLanguage(text)) {
+      detectedPatterns.push('passive_aggressive_language');
       score += 40;
     }
 
     return {
       score: Math.min(score, 100),
-      patrones: patronesDetectados,
-      confianza: this.calcularConfianza(patronesDetectados)
+      patterns: detectedPatterns,
+      confidence: this.calculateConfidence(detectedPatterns)
     };
   }
 
-  async analizarContextoVisual(contextoVisual) {
+  async analyzeVisualContext(visualContext) {
     try {
       if (typeof ai !== 'undefined' && ai.prompt) {
-        const analisis = await ai.prompt({
-          text: `Analizar contexto visual: ${JSON.stringify(contextoVisual)}`,
-          instructions: "Detectar incongruencias entre texto y elementos visuales"
+        const analysis = await ai.prompt({
+          text: `Analyze visual context: ${JSON.stringify(visualContext)}`,
+          instructions: "Detect incongruences between text and visual elements"
         });
-        return this.procesarAnalisisVisual(analisis);
+        return this.processVisualAnalysis(analysis);
       }
     } catch (error) {
-      console.warn('Chrome AI no disponible para análisis visual');
+      console.warn('Chrome AI not available for visual analysis');
     }
 
-    return this.analisisVisualHeuristico(contextoVisual);
+    return this.heuristicVisualAnalysis(visualContext);
   }
 
-  analisisVisualHeuristico(contextoVisual) {
+  heuristicVisualAnalysis(visualContext) {
     let score = 0;
-    const patrones = [];
+    const patterns = [];
 
-    if (contextoVisual.emojis) {
-      contextoVisual.emojis.forEach(emoji => {
-        if (this.esEmojiIncongruente(emoji, contextoVisual.texto)) {
-          patrones.push('emoji_incongruente');
+    if (visualContext.emojis) {
+      visualContext.emojis.forEach(emoji => {
+        if (this.isIncongruentEmoji(emoji, visualContext.text)) {
+          patterns.push('incongruent_emoji');
           score += 20;
         }
       });
@@ -81,91 +86,91 @@ class SarcasmDetector {
 
     return {
       score: Math.min(score, 100),
-      patrones,
-      confianza: 0.6
+      patterns,
+      confidence: 0.6
     };
   }
 
-  combinarAnalisis(textual, visual) {
-    const scoreTotal = (textual.score * 0.7) + (visual.score * 0.3);
-    const patronesTotales = [...textual.patrones, ...visual.patrones];
+  combineAnalyses(textual, visual) {
+    const totalScore = (textual.score * 0.7) + (visual.score * 0.3);
+    const totalPatterns = [...textual.patterns, ...visual.patterns];
     
     return {
-      scoreSarcasmo: Math.min(scoreTotal, 100),
-      patronesDetectados: [...new Set(patronesTotales)],
-      confianzaTotal: (textual.confianza + visual.confianza) / 2,
-      detalles: {
+      sarcasmScore: Math.min(totalScore, 100),
+      detectedPatterns: [...new Set(totalPatterns)],
+      totalConfidence: (textual.confidence + visual.confidence) / 2,
+      details: {
         textual,
         visual
       }
     };
   }
 
-  tieneExcesivaPositividad(texto) {
-    const palabrasPositivas = ['excelente', 'maravilloso', 'increíble', 'perfecto', 'fantástico'];
-    const conteo = palabrasPositivas.filter(palabra => 
-      texto.toLowerCase().includes(palabra)
+  hasExcessivePositivity(text) {
+    const positiveWords = ['excellent', 'wonderful', 'incredible', 'perfect', 'fantastic'];
+    const count = positiveWords.filter(word => 
+      text.toLowerCase().includes(word)
     ).length;
-    return conteo >= 3;
+    return count >= 3;
   }
 
-  tieneHiperbole(texto) {
-    const hiperboles = ['el mejor', 'el peor', 'nunca', 'siempre', 'completamente'];
-    return hiperboles.some(hiperbole => texto.toLowerCase().includes(hiperbole));
+  hasHyperbole(text) {
+    const hyperboles = ['the best', 'the worst', 'never', 'always', 'completely'];
+    return hyperboles.some(hyperbole => text.toLowerCase().includes(hyperbole));
   }
 
-  tieneContradicciones(texto) {
-    const contradicciones = [
-      ['pero', 'excelente'],
-      ['aunque', 'perfecto'],
-      ['sin embargo', 'genial']
+  hasContradictions(text) {
+    const contradictions = [
+      ['but', 'excellent'],
+      ['although', 'perfect'],
+      ['however', 'great']
     ];
-    return contradicciones.some(([contrast, positive]) => 
-      texto.includes(contrast) && texto.includes(positive)
+    return contradictions.some(([contrast, positive]) => 
+      text.includes(contrast) && text.includes(positive)
     );
   }
 
-  tieneLenguajePasivoAgresivo(texto) {
-    const patronesPA = [
-      'según mi último correo',
-      'como ya mencioné',
-      'deberías saber',
-      'espero que esto quede claro'
+  hasPassiveAggressiveLanguage(text) {
+    const paPatterns = [
+      'per my last email',
+      'as I mentioned before',
+      'you should know',
+      'I hope this is clear'
     ];
-    return patronesPA.some(patron => texto.toLowerCase().includes(patron));
+    return paPatterns.some(pattern => text.toLowerCase().includes(pattern));
   }
 
-  esEmojiIncongruente(emoji, texto) {
-    const emojisPositivos = ['😊', '👍', '🎉', '❤️', '⭐'];
-    const emojisNegativos = ['😠', '👎', '💀', '🔥', '💣'];
+  isIncongruentEmoji(emoji, text) {
+    const positiveEmojis = ['😊', '👍', '🎉', '❤️', '⭐'];
+    const negativeEmojis = ['😠', '👎', '💀', '🔥', '💣'];
     
-    const textoEsNegativo = this.textoTieneSentimientoNegativo(texto);
-    const emojiEsPositivo = emojisPositivos.includes(emoji);
+    const textIsNegative = this.textHasNegativeSentiment(text);
+    const emojiIsPositive = positiveEmojis.includes(emoji);
     
-    return textoEsNegativo && emojiEsPositivo;
+    return textIsNegative && emojiIsPositive;
   }
 
-  textoTieneSentimientoNegativo(texto) {
-    const palabrasNegativas = ['problema', 'error', 'mal', 'incorrecto', 'falla'];
-    return palabrasNegativas.some(palabra => texto.toLowerCase().includes(palabra));
+  textHasNegativeSentiment(text) {
+    const negativeWords = ['problem', 'error', 'bad', 'wrong', 'failure'];
+    return negativeWords.some(word => text.toLowerCase().includes(word));
   }
 
-  calcularConfianza(patrones) {
-    return patrones.length > 0 ? 0.7 + (patrones.length * 0.1) : 0.3;
+  calculateConfidence(patterns) {
+    return patterns.length > 0 ? 0.7 + (patterns.length * 0.1) : 0.3;
   }
 
-  procesarAnalisisVisual(analisis) {
+  processVisualAnalysis(analysis) {
     try {
-      if (typeof analisis === 'string') {
+      if (typeof analysis === 'string') {
         return {
           score: 50,
-          patrones: ['analisis_visual_basico'],
-          confianza: 0.7
+          patterns: ['basic_visual_analysis'],
+          confidence: 0.7
         };
       }
-      return analisis;
+      return analysis;
     } catch (error) {
-      return this.analisisVisualHeuristico({});
+      return this.heuristicVisualAnalysis({});
     }
   }
 }
