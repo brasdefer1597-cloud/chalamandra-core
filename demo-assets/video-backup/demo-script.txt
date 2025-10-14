@@ -1,0 +1,31 @@
+CHALAMANDRA CORE - VIDEO DEMO SCRIPT
+
+SCENE 1: PROBLEM INTRODUCTION (0:00-0:30)
+- Show statistics: $1.2T cost, 44% email misinterpretation
+- Visual: Animated charts and frustrated professionals
+- Voiceover: "Communication breakdowns cost businesses billions..."
+
+SCENE 2: SOLUTION OVERVIEW (0:30-1:00)  
+- Show Chalamandra Core extension in action
+- Visual: Clean interface, radar visualization
+- Voiceover: "Chalamandra Core brings AI-powered communication intelligence to your browser"
+
+SCENE 3: NORMAL EMAIL DEMO (1:00-1:45)
+- Show professional email analysis
+- Visual: Green radar, positive metrics
+- Voiceover: "Clear communication gets the green light instantly"
+
+SCENE 4: SARCASTIC EMAIL DEMO (1:45-2:30)
+- Show problematic email with incongruent image
+- Visual: Radar spikes red, explanations highlight issues
+- Voiceover: "But Chalamandra detects hidden risks that other tools miss..."
+
+SCENE 5: TECHNOLOGY HIGHLIGHTS (2:30-3:00)
+- Show Chrome AI APIs, privacy features, hybrid architecture
+- Visual: Technical diagrams, privacy badges
+- Voiceover: "Built with Chrome's native AI, prioritizing your privacy"
+
+END CARD:
+- Website/GitHub link
+- "Available now as Chrome Extension"
+- "Google Chrome AI Challenge 2025 Submission"
