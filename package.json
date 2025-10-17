@@ -6,20 +6,28 @@
   "scripts": {
     "build": "node scripts/build.js",
     "dev": "node scripts/dev-server.js",
-    "test": "node scripts/test-demo.js"
+    "test": "node scripts/test-demo.js",
+    "pack": "node scripts/build.js && cd build && zip -r chalamandra-core-v$npm_package_version.zip ."
   },
   "keywords": [
     "chrome-extension",
     "ai",
     "communication",
     "analysis",
-    "chrome-ai-apis"
+    "chrome-ai-apis",
+    "multimodal",
+    "hybrid-ai",
+    "productivity",
+    "business"
   ],
   "author": "Chalamandra Team",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/brasdefer1597-cloud/chalamandra-core.git"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "chrome": ">=121.0.0"
   }
 }
-
