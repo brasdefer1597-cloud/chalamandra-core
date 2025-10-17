@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "🦎 Chalamandra Core - AI Communication Intelligence",
-  "description": "Real-time multidimensional context analysis using Chrome's Built-in AI APIs. Solve communication misunderstandings in emails, chats, and documents.",
   "version": "2.0.0",
+  "description": "Real-time multidimensional context analysis using Chrome's Built-in AI APIs. Solve communication misunderstandings in emails, chats, and documents.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -13,31 +13,31 @@
     "http://*/*"
   ],
   "action": {
-    "default_popup": "popup/popup.html",
+    "default_popup": "src/popup/popup.html",
     "default_title": "Chalamandra Core - Analyze Communication Context",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "assets/icons/icon-16.png",
+      "48": "assets/icons/icon-48.png",
+      "128": "assets/icons/icon-128.png"
     }
   },
   "background": {
-    "service_worker": "background/service-worker.js"
+    "service_worker": "src/background/service-worker.js"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content/content.js"],
-      "css": ["content/content.css"]
+      "js": ["src/content/content.js"],
+      "css": ["src/content/content.css"]
     }
   ],
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "assets/icons/icon-16.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
   },
   "web_accessible_resources": [{
-    "resources": ["images/*", "styles/*"],
+    "resources": ["assets/images/*"],
     "matches": ["<all_urls>"]
   }]
 }
