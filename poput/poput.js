@@ -1,249 +1,398 @@
+// Chalamandra Core Popup JavaScript
 class PopupManager {
-  constructor() {
-    this.radar = new RadarVisualization('communicationRadar');
-    this.currentAnalysis = null;
-    this.init();
-  }
-
-  init() {
-    this.bindEvents();
-    this.autoAnalyze();
-  }
-
-  bindEvents() {
-    document.getElementById('quickAnalysis').addEventListener('click', () => this.analyzePage('quick'));
-    document.getElementById('deepAnalysis').addEventListener('click', () => this.analyzePage('deep'));
-    document.getElementById('multimodalAnalysis').addEventListener('click', () => this.analyzePage('multimodal'));
-  }
-
-  async analyzePage(mode) {
-    this.showLoading();
-    this.hideError();
-    this.hideResults();
-
-    try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      
-      if (!tab.url.startsWith('http')) {
-        throw new Error('Cannot analyze non-http pages');
-      }
-
-      const analysis = await this.sendAnalysisRequest(tab.id, mode);
-      this.displayAnalysisResults(analysis, mode);
-      
-    } catch (error) {
-      console.error('Analysis error:', error);
-      this.showError();
-    } finally {
-      this.hideLoading();
+    constructor() {
+        this.currentAnalysis = null;
+        this.init();
     }
-  }
 
-  async sendAnalysisRequest(tabId, mode) {
-    return new Promise((resolve, reject) => {
-      chrome.tabs.sendMessage(tabId, { 
-        action: 'analyzePage',
-        mode: mode 
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-        } else if (response && response.success) {
-          resolve(response.analysis);
-        } else {
-          reject(new Error('Analysis failed'));
-        }
-      });
-    });
-  }
+    init() {
+        this.bindEvents();
+        this.loadUserPreferences();
+        console.log('🦎 Chalamandra Core Popup initialized');
+    }
 
-  displayAnalysisResults(analysis, mode) {
-    this.currentAnalysis = analysis;
-    
-    // Update radar visualization
-    if (analysis.communicationProfile) {
-      this.radar.animateTransition(analysis.communicationProfile);
-    } else {
-      const demoData = this.radar.generateDemoData(
-        analysis.sarcasmScore > 70 ? 'sarcastic' : 'normal'
-      );
-      this.radar.animateTransition(demoData);
-    }
-    
-    // Update dimension content
-    this.updateStrategicContent(analysis);
-    this.updateEmotionalContent(analysis);
-    this.updateRelationalContent(analysis);
-    
-    // Show explanations if available
-    if (analysis.explanations) {
-      this.showExplanations(analysis.explanations);
-    }
-    
-    // Highlight used APIs
-    this.highlightUsedAPIs(mode);
-    
-    this.showResults();
-  }
-
-  updateStrategicContent(analysis) {
-    const strategicContent = document.getElementById('strategic-content');
-    
-    let content = '';
-    if (analysis.strategic) {
-      content = `
-        <p><strong>Power Dynamics:</strong> ${analysis.strategic.powerDynamics || 'Balanced'}</p>
-        <p><strong>Hidden Agendas:</strong> ${analysis.strategic.hiddenAgendas || 'Not detected'}</p>
-        <p><strong>Negotiation Context:</strong> ${analysis.strategic.negotiation || 'Standard'}</p>
-      `;
-    } else {
-      content = '<p>Strategic analysis shows balanced professional communication.</p>';
-    }
-    
-    strategicContent.innerHTML = content;
-  }
-
-  updateEmotionalContent(analysis) {
-    const emotionalContent = document.getElementById('emotional-content');
-    const toneFill = document.getElementById('tone-fill');
-    const toneValue = document.getElementById('tone-value');
-    
-    let toneScore = 50;
-    let toneText = 'Neutral';
-    
-    if (analysis.emotional) {
-      toneScore = analysis.emotional.score || 50;
-      toneText = analysis.emotional.tone || 'Neutral';
-    }
-    
-    // Update tone meter
-    toneFill.style.width = `${toneScore}%`;
-    toneValue.textContent = toneText;
-    toneValue.style.color = this.getToneColor(toneScore);
-    
-    let content = '';
-    if (analysis.emotional) {
-      content = `
-        <p><strong>Emotional Subtext:</strong> ${analysis.emotional.subtext || 'Direct communication'}</p>
-        <p><strong>Psychological Factors:</strong> ${analysis.emotional.psychologicalFactors || 'Standard engagement'}</p>
-      `;
-    } else {
-      content = '<p>Emotional analysis indicates professional tone and clear intent.</p>';
-    }
-    
-    emotionalContent.innerHTML += content;
-  }
-
-  updateRelationalContent(analysis) {
-    const relationalContent = document.getElementById('relational-content');
-    
-    let content = '';
-    if (analysis.relational) {
-      content = `
-        <p><strong>Trust Indicators:</strong> ${analysis.relational.trust || 'Professional level'}</p>
-        <p><strong>Connection Points:</strong> ${analysis.relational.connection || 'Collaborative context'}</p>
-        <p><strong>Social Cues:</strong> ${analysis.relational.socialCues || 'Formal communication'}</p>
-      `;
-    } else {
-      content = '<p>Relational dynamics show professional trust and collaboration.</p>';
-    }
-    
-    relationalContent.innerHTML = content;
-  }
-
-  showExplanations(explanations) {
-    const explanationContent = document.getElementById('explanation-content');
-    const explanationsSection = document.getElementById('explanations');
-    
-    let content = '';
-    
-    if (explanations.summary) {
-      content += `<p><strong>Summary:</strong> ${explanations.summary}</p>`;
-    }
-    
-    if (explanations.recommendations && explanations.recommendations.length > 0) {
-      content += `<p><strong>Recommendations:</strong></p><ul>`;
-      explanations.recommendations.forEach(rec => {
-        content += `<li>${rec}</li>`;
-      });
-      content += `</ul>`;
-    }
-    
-    explanationContent.innerHTML = content;
-    explanationsSection.style.display = 'block';
-  }
-
-  highlightUsedAPIs(mode) {
-    // Reset all APIs
-    document.querySelectorAll('.api-item').forEach(item => {
-      item.classList.remove('active');
-    });
-    
-    // Always use Prompt API
-    document.querySelector('[data-api="prompt"]').classList.add('active');
-    
-    switch(mode) {
-      case 'quick':
-        document.querySelector('[data-api="summarizer"]').classList.add('active');
-        break;
-      case 'deep':
-        document.querySelector('[data-api="summarizer"]').classList.add('active');
-        document.querySelector('[data-api="rewriter"]').classList.add('active');
-        break;
-      case 'multimodal':
-        document.querySelectorAll('.api-item').forEach(item => {
-          item.classList.add('active');
+    bindEvents() {
+        // Analysis button
+        document.getElementById('analyzeBtn').addEventListener('click', () => {
+            this.analyzeText();
         });
-        break;
+
+        // New analysis button
+        document.getElementById('newAnalysisBtn').addEventListener('click', () => {
+            this.resetAnalysis();
+        });
+
+        // Retry button
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            this.analyzeText();
+        });
+
+        // Enter key in textarea
+        document.getElementById('textInput').addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                this.analyzeText();
+            }
+        });
+
+        // Footer buttons
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            this.showSettings();
+        });
+
+        document.getElementById('historyBtn').addEventListener('click', () => {
+            this.showHistory();
+        });
+
+        document.getElementById('helpBtn').addEventListener('click', () => {
+            this.showHelp();
+        });
     }
-  }
 
-  getToneColor(score) {
-    if (score < 30) return '#ff6b6b';
-    if (score < 70) return '#ffa726';
-    return '#4ecdc4';
-  }
+    async analyzeText() {
+        const textInput = document.getElementById('textInput');
+        const text = textInput.value.trim();
 
-  showLoading() {
-    document.getElementById('status').style.display = 'flex';
-  }
+        if (!text) {
+            this.showError('Please enter some text to analyze');
+            return;
+        }
 
-  hideLoading() {
-    document.getElementById('status').style.display = 'none';
-  }
+        this.showLoading();
 
-  showResults() {
-    document.getElementById('results').style.display = 'block';
-  }
+        try {
+            const analysis = await this.sendAnalysisRequest(text);
+            this.displayResults(analysis);
+        } catch (error) {
+            console.error('Analysis error:', error);
+            this.showError('Failed to analyze text. Please try again.');
+        }
+    }
 
-  hideResults() {
-    document.getElementById('results').style.display = 'none';
-  }
+    async sendAnalysisRequest(text) {
+        return new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage({
+                action: 'analyzeCommunication',
+                data: {
+                    text: text,
+                    timestamp: new Date().toISOString(),
+                    source: 'popup'
+                }
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                } else if (response && response.success) {
+                    resolve(response.data);
+                } else {
+                    reject(new Error(response?.error || 'Unknown error'));
+                }
+            });
+        });
+    }
 
-  showError() {
-    document.getElementById('error').style.display = 'block';
-  }
+    displayResults(analysis) {
+        this.currentAnalysis = analysis;
+        this.showResults();
 
-  hideError() {
-    document.getElementById('error').style.display = 'none';
-  }
+        // Update confidence score
+        document.getElementById('confidenceValue').textContent = 
+            `${Math.round((analysis.confidence || 0.7) * 100)}%`;
 
-  autoAnalyze() {
-    // Auto-analyze on popup open
-    setTimeout(() => {
-      this.analyzePage('quick');
-    }, 500);
-  }
+        // Update risk indicators
+        this.updateRiskIndicators(analysis);
+
+        // Update insights
+        this.updateInsights(analysis);
+
+        // Update recommendations
+        this.updateRecommendations(analysis);
+
+        // Update detail bars
+        this.updateDetailBars(analysis);
+    }
+
+    updateRiskIndicators(analysis) {
+        const container = document.getElementById('riskIndicators');
+        container.innerHTML = '';
+
+        const indicators = [];
+
+        // Sarcasm risk
+        if (analysis.sarcasmScore > 70) {
+            indicators.push({
+                text: `Sarcasm: ${analysis.sarcasmScore}%`,
+                level: 'high'
+            });
+        }
+
+        // Overall risk
+        if (analysis.overallRisk > 70) {
+            indicators.push({
+                text: `High Risk: ${analysis.overallRisk}%`,
+                level: 'high'
+            });
+        } else if (analysis.overallRisk > 40) {
+            indicators.push({
+                text: `Medium Risk: ${analysis.overallRisk}%`,
+                level: 'medium'
+            });
+        } else {
+            indicators.push({
+                text: `Low Risk: ${analysis.overallRisk}%`,
+                level: 'low'
+            });
+        }
+
+        // Strategic risk
+        if (analysis.strategic?.powerDynamics === 'high') {
+            indicators.push({
+                text: 'Power Dynamics',
+                level: 'medium'
+            });
+        }
+
+        // Create indicator elements
+        indicators.forEach(indicator => {
+            const element = document.createElement('div');
+            element.className = `risk-indicator risk-${indicator.level}`;
+            element.textContent = indicator.text;
+            container.appendChild(element);
+        });
+    }
+
+    updateInsights(analysis) {
+        const container = document.getElementById('insightsList');
+        container.innerHTML = '';
+
+        const insights = [];
+
+        // Emotional insights
+        if (analysis.emotional) {
+            if (analysis.emotional.tone === 'sarcastic') {
+                insights.push('Sarcastic tone detected - may cause misunderstandings');
+            } else if (analysis.emotional.tone === 'negative') {
+                insights.push('Negative tone - consider more constructive language');
+            } else if (analysis.emotional.tone === 'positive') {
+                insights.push('Positive tone - good for team morale');
+            }
+
+            if (analysis.emotional.score < 30) {
+                insights.push('Low emotional score - review message impact');
+            }
+        }
+
+        // Strategic insights
+        if (analysis.strategic) {
+            if (analysis.strategic.hiddenAgendas) {
+                insights.push('Possible hidden agendas - be more transparent');
+            }
+            if (analysis.strategic.powerDynamics === 'high') {
+                insights.push('Hierarchical language - consider collaborative approach');
+            }
+        }
+
+        // Relational insights
+        if (analysis.relational) {
+            if (analysis.relational.trust === 'low') {
+                insights.push('Low trust indicators - build more transparency');
+            }
+            if (analysis.relational.connection === 'weak') {
+                insights.push('Weak connection - strengthen relational language');
+            }
+        }
+
+        // Add insights to container
+        insights.forEach(insight => {
+            const element = document.createElement('div');
+            element.className = 'insight-item';
+            element.textContent = insight;
+            container.appendChild(element);
+        });
+
+        // If no insights, show default
+        if (insights.length === 0) {
+            const element = document.createElement('div');
+            element.className = 'insight-item';
+            element.textContent = 'Communication appears professional and clear';
+            container.appendChild(element);
+        }
+    }
+
+    updateRecommendations(analysis) {
+        const container = document.getElementById('recommendationsList');
+        container.innerHTML = '';
+
+        let recommendations = analysis.recommendations || [];
+
+        // Add default recommendations if none provided
+        if (recommendations.length === 0) {
+            recommendations = [
+                'Maintain current communication style',
+                'Continue using clear and professional language'
+            ];
+        }
+
+        // Add recommendations to list
+        recommendations.forEach(rec => {
+            const element = document.createElement('li');
+            element.textContent = rec;
+            container.appendChild(element);
+        });
+    }
+
+    updateDetailBars(analysis) {
+        // Strategic bar
+        const strategicValue = this.calculateStrategicValue(analysis.strategic);
+        document.getElementById('strategicBar').style.width = `${strategicValue}%`;
+        document.getElementById('strategicValue').textContent = 
+            this.getStrategicLabel(strategicValue);
+
+        // Emotional bar
+        const emotionalValue = analysis.emotional?.score || 50;
+        document.getElementById('emotionalBar').style.width = `${emotionalValue}%`;
+        document.getElementById('emotionalValue').textContent = 
+            this.getEmotionalLabel(emotionalValue);
+
+        // Relational bar
+        const relationalValue = this.calculateRelationalValue(analysis.relational);
+        document.getElementById('relationalBar').style.width = `${relationalValue}%`;
+        document.getElementById('relationalValue').textContent = 
+            this.getRelationalLabel(relationalValue);
+    }
+
+    calculateStrategicValue(strategic) {
+        if (!strategic) return 50;
+        
+        let score = 50;
+        if (strategic.powerDynamics === 'low') score += 20;
+        if (strategic.powerDynamics === 'high') score -= 20;
+        if (strategic.hiddenAgendas) score -= 30;
+        
+        return Math.max(0, Math.min(100, score));
+    }
+
+    calculateRelationalValue(relational) {
+        if (!relational) return 50;
+        
+        let score = 50;
+        if (relational.trust === 'high') score += 25;
+        if (relational.trust === 'low') score -= 25;
+        if (relational.connection === 'strong') score += 15;
+        if (relational.connection === 'weak') score -= 15;
+        
+        return Math.max(0, Math.min(100, score));
+    }
+
+    getStrategicLabel(value) {
+        if (value >= 70) return 'Collaborative';
+        if (value >= 40) return 'Balanced';
+        return 'Directive';
+    }
+
+    getEmotionalLabel(value) {
+        if (value >= 70) return 'Positive';
+        if (value >= 40) return 'Neutral';
+        return 'Negative';
+    }
+
+    getRelationalLabel(value) {
+        if (value >= 70) return 'Strong';
+        if (value >= 40) return 'Moderate';
+        return 'Weak';
+    }
+
+    showLoading() {
+        this.hideAllSections();
+        document.getElementById('loading').classList.remove('hidden');
+        
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        analyzeBtn.disabled = true;
+        analyzeBtn.querySelector('.btn-text').textContent = 'Analyzing...';
+        analyzeBtn.querySelector('.loading-spinner').style.display = 'block';
+    }
+
+    showResults() {
+        this.hideAllSections();
+        document.getElementById('results').classList.remove('hidden');
+        
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        analyzeBtn.disabled = false;
+        analyzeBtn.querySelector('.btn-text').textContent = 'Analyze Communication';
+        analyzeBtn.querySelector('.loading-spinner').style.display = 'none';
+    }
+
+    showError(message) {
+        this.hideAllSections();
+        document.getElementById('error').classList.remove('hidden');
+        document.getElementById('errorMessage').textContent = message;
+        
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        analyzeBtn.disabled = false;
+        analyzeBtn.querySelector('.btn-text').textContent = 'Analyze Communication';
+        analyzeBtn.querySelector('.loading-spinner').style.display = 'none';
+    }
+
+    resetAnalysis() {
+        this.hideAllSections();
+        document.getElementById('analysis-section').classList.remove('hidden');
+        document.getElementById('textInput').value = '';
+        document.getElementById('textInput').focus();
+    }
+
+    hideAllSections() {
+        const sections = ['analysis-section', 'results', 'loading', 'error'];
+        sections.forEach(section => {
+            const element = document.getElementById(section);
+            if (element) {
+                element.classList.add('hidden');
+            }
+        });
+    }
+
+    showSettings() {
+        // Future feature: Open options page
+        chrome.runtime.openOptionsPage();
+    }
+
+    showHistory() {
+        // Future feature: Show analysis history
+        alert('Analysis history feature coming soon!');
+    }
+
+    showHelp() {
+        // Future feature: Show help documentation
+        window.open('https://github.com/brasdefer1597-cloud/chalamandra-core', '_blank');
+    }
+
+    async loadUserPreferences() {
+        try {
+            const preferences = await new Promise((resolve) => {
+                chrome.storage.local.get(['userPreferences'], (result) => {
+                    resolve(result.userPreferences);
+                });
+            });
+            
+            if (preferences) {
+                console.log('User preferences loaded:', preferences);
+            }
+        } catch (error) {
+            console.warn('Failed to load user preferences:', error);
+        }
+    }
 }
 
-// Initialize popup when DOM is loaded
+// Initialize the popup when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new PopupManager();
+    new PopupManager();
 });
 
-// Demo functionality for presentation
-function demoAnalysis(type) {
-  const popupManager = new PopupManager();
-  const demoData = popupManager.radar.generateDemoData(type);
-  popupManager.radar.animateTransition(demoData);
-  popupManager.showResults();
-}
+// Add some demo text for testing
+document.addEventListener('DOMContentLoaded', () => {
+    const textInput = document.getElementById('textInput');
+    
+    // Add demo text for easy testing
+    if (!textInput.value) {
+        textInput.value = "Great job on the project! I'm really impressed with how everything turned out, especially considering the tight deadlines. Looking forward to working together again soon!";
+    }
+    
+    textInput.focus();
+});
