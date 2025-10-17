@@ -174,3 +174,7 @@ class SarcasmDetector {
     }
   }
 }
+
+if (typeof module !== 'undefined') {
+  module.exports = SarcasmDetector;
+}
