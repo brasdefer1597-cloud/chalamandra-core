@@ -160,4 +160,4 @@ class MultimodalAnalyzer {
 
 if (typeof module !== 'undefined') {
   module.exports = MultimodalAnalyzer;
-}
+  }
