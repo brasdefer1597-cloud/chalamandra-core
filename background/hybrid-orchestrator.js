@@ -1,430 +1,367 @@
-// Advanced hybrid orchestration for Chalamandra Core
-class AdvancedHybridOrchestrator {
-  constructor() {
-    this.performanceMetrics = {
-      localProcessingTime: 0,
-      serverProcessingTime: 0,
-      successRate: 100,
-      fallbackUsage: 0
-    };
-    
-    this.capabilities = this.detectCapabilities();
-    this.init();
-  }
-
-  init() {
-    this.setupPerformanceMonitoring();
-    this.setupCapabilityDetection();
-  }
-
-  detectCapabilities() {
-    const capabilities = {
-      chromeAI: false,
-      tensorFlowJS: false,
-      webWorkers: false,
-      wasm: false
-    };
-
-    // Check Chrome AI API availability
-    if (typeof ai !== 'undefined') {
-      capabilities.chromeAI = !!(ai.prompt || ai.summarizer || ai.rewriter);
+class HybridOrchestrator {
+    constructor() {
+        this.localEngine = new ChalamandraEngine();
+        this.useCloudEnhancement = false;
+        this.cloudEndpoints = {
+            deepAnalysis: 'https://api.chalamandra-core.com/v1/analyze',
+            sentiment: 'https://api.chalamandra-core.com/v1/sentiment',
+            culturalContext: 'https://api.chalamandra-core.com/v1/cultural'
+        };
+        this.init();
     }
 
-    // Check TensorFlow.js availability
-    if (typeof tf !== 'undefined') {
-      capabilities.tensorFlowJS = true;
+    init() {
+        this.loadUserPreferences();
+        this.setupConnectivityCheck();
     }
 
-    // Check Web Workers support
-    capabilities.webWorkers = typeof Worker !== 'undefined';
-
-    // Check WebAssembly support
-    capabilities.wasm = typeof WebAssembly !== 'undefined';
-
-    return capabilities;
-  }
-
-  async executeOptimizedAnalysis(content, mode, options = {}) {
-    const startTime = performance.now();
-    
-    try {
-      // Choose the best available analysis method
-      const analysisMethod = this.selectOptimalAnalysisMethod(mode);
-      const result = await analysisMethod(content, mode, options);
-      
-      // Update performance metrics
-      this.updatePerformanceMetrics('success', performance.now() - startTime);
-      
-      return result;
-      
-    } catch (error) {
-      // Attempt fallback strategies
-      const fallbackResult = await this.executeFallbackStrategy(content, mode, error);
-      
-      // Update performance metrics
-      this.updatePerformanceMetrics('fallback', performance.now() - startTime);
-      
-      return fallbackResult;
-    }
-  }
-
-  selectOptimalAnalysisMethod(mode) {
-    const { chromeAI, tensorFlowJS } = this.capabilities;
-    
-    if (chromeAI) {
-      return this.chromeAIAnalysis.bind(this);
-    } else if (tensorFlowJS) {
-      return this.tensorFlowJSAnalysis.bind(this);
-    } else {
-      return this.heuristicAnalysis.bind(this);
-    }
-  }
-
-  async chromeAIAnalysis(content, mode) {
-    console.log('Using Chrome AI APIs for analysis');
-    
-    const analysisPromises = [];
-    
-    // Always use Prompt API for base analysis
-    analysisPromises.push(
-      ai.prompt({
-        text: content.text,
-        instructions: this.getAnalysisInstructions(mode)
-      })
-    );
-    
-    // Add additional APIs based on mode
-    if (mode === 'deep' && ai.summarizer) {
-      analysisPromises.push(
-        ai.summarizer.summarize(content.text)
-      );
-    }
-    
-    if (mode === 'multimodal' && ai.rewriter) {
-      analysisPromises.push(
-        ai.rewriter.rewrite(this.getRewriterPrompt(content))
-      );
-    }
-    
-    const results = await Promise.allSettled(analysisPromises);
-    return this.processChromeAIResults(results, mode);
-  }
-
-  async tensorFlowJSAnalysis(content, mode) {
-    console.log('Using TensorFlow.js for analysis');
-    
-    // This would use pre-trained models for analysis
-    // For now, return a simulated analysis
-    return {
-      strategic: {
-        powerDynamics: 'ml_analyzed',
-        confidence: 0.85
-      },
-      emotional: {
-        tone: 'ml_detected',
-        score: this.mlToneAnalysis(content.text)
-      },
-      processing: {
-        engine: 'tensorflow_js',
-        model: 'communication_analysis_v1'
-      }
-    };
-  }
-
-  async executeFallbackStrategy(content, mode, originalError) {
-    console.warn('Primary analysis failed, executing fallback:', originalError);
-    
-    this.performanceMetrics.fallbackUsage++;
-    
-    // Try fallback methods in order of preference
-    const fallbackMethods = [
-      this.simpleAIAnalysis.bind(this),
-      this.patternBasedAnalysis.bind(this),
-      this.heuristicAnalysis.bind(this)
-    ];
-    
-    for (const method of fallbackMethods) {
-      try {
-        const result = await method(content, mode);
-        console.log(`Fallback method ${method.name} succeeded`);
-        return result;
-      } catch (error) {
-        console.warn(`Fallback method ${method.name} failed:`, error);
-        continue;
-      }
-    }
-    
-    // Ultimate fallback
-    return this.ultimateFallback(content);
-  }
-
-  async simpleAIAnalysis(content, mode) {
-    // Simple AI analysis using basic NLP techniques
-    return {
-      strategic: {
-        powerDynamics: this.analyzePowerLanguage(content.text),
-        complexity: this.analyzeComplexity(content.text)
-      },
-      emotional: {
-        tone: this.basicToneAnalysis(content.text),
-        sentiment: this.basicSentimentAnalysis(content.text)
-      },
-      processing: {
-        method: 'simple_ai_fallback',
-        confidence: 0.7
-      }
-    };
-  }
-
-  async patternBasedAnalysis(content, mode) {
-    // Pattern-based analysis using predefined rules
-    const patterns = this.analyzeCommunicationPatterns(content.text);
-    
-    return {
-      strategic: {
-        powerDynamics: patterns.powerLevel,
-        communicationStyle: patterns.style
-      },
-      emotional: {
-        tone: patterns.primaryTone,
-        emotionalMarkers: patterns.emotionalMarkers
-      },
-      relational: {
-        trustIndicators: patterns.trustScore,
-        collaborationLevel: patterns.collaborationScore
-      },
-      processing: {
-        method: 'pattern_based',
-        patternsDetected: patterns.detectedPatterns.length
-      }
-    };
-  }
-
-  heuristicAnalysis(content, mode) {
-    // Basic heuristic analysis as last resort
-    return {
-      strategic: {
-        powerDynamics: 'balanced',
-        assessment: 'basic_heuristic'
-      },
-      emotional: {
-        tone: 'neutral',
-        score: 50
-      },
-      processing: {
-        method: 'heuristic_fallback',
-        note: 'Limited analysis available'
-      }
-    };
-  }
-
-  ultimateFallback(content) {
-    // Absolute minimum analysis
-    return {
-      status: 'basic_analysis',
-      message: 'Limited analysis capability available',
-      recommendation: 'Try refreshing or check browser compatibility',
-      processing: {
-        method: 'ultimate_fallback',
-        capability: 'minimal'
-      }
-    };
-  }
-
-  // Analysis helper methods
-  getAnalysisInstructions(mode) {
-    const instructions = {
-      quick: "Quick communication analysis: tone, basic intent, professional context.",
-      deep: "Deep communication analysis: power dynamics, hidden agendas, emotional subtext, relational factors.",
-      multimodal: "Multimodal communication analysis: text context, potential sarcasm, cultural nuances, relational dynamics."
-    };
-    
-    return instructions[mode] || instructions.quick;
-  }
-
-  getRewriterPrompt(content) {
-    return `Analyze this communication for improvement suggestions: ${content.text}`;
-  }
-
-  mlToneAnalysis(text) {
-    // Simulate ML tone analysis
-    const positiveWords = ['excellent', 'great', 'thanks', 'appreciate', 'collaborat'];
-    const negativeWords = ['problem', 'issue', 'concern', 'unfortunately', 'but'];
-    
-    const positiveCount = positiveWords.filter(word => text.includes(word)).length;
-    const negativeCount = negativeWords.filter(word => text.includes(word)).length;
-    
-    return Math.max(0, Math.min(100, 50 + (positiveCount - negativeCount) * 10));
-  }
-
-  analyzePowerLanguage(text) {
-    const powerWords = ['must', 'require', 'expect', 'demand', 'insist'];
-    const collaborativeWords = ['suggest', 'recommend', 'consider', 'collaborate', 'partner'];
-    
-    const powerScore = powerWords.filter(word => text.includes(word)).length;
-    const collaborativeScore = collaborativeWords.filter(word => text.includes(word)).length;
-    
-    if (powerScore > collaborativeScore + 2) return 'high';
-    if (collaborativeScore > powerScore + 2) return 'low';
-    return 'balanced';
-  }
-
-  analyzeComplexity(text) {
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    const words = text.split(/\s+/).filter(w => w.length > 0);
-    
-    const avgSentenceLength = words.length / sentences.length;
-    
-    if (avgSentenceLength > 25) return 'high';
-    if (avgSentenceLength > 15) return 'medium';
-    return 'low';
-  }
-
-  basicToneAnalysis(text) {
-    const lowerText = text.toLowerCase();
-    
-    if (lowerText.includes('!') && lowerText.includes('?')) return 'confused';
-    if (lowerText.includes('!')) return 'emphatic';
-    if (lowerText.includes('?')) return 'inquiring';
-    
-    return 'neutral';
-  }
-
-  basicSentimentAnalysis(text) {
-    const positive = ['good', 'great', 'excellent', 'thanks', 'appreciate'];
-    const negative = ['bad', 'terrible', 'problem', 'issue', 'sorry'];
-    
-    const posCount = positive.filter(word => text.toLowerCase().includes(word)).length;
-    const negCount = negative.filter(word => text.toLowerCase().includes(word)).length;
-    
-    if (posCount > negCount) return 'positive';
-    if (negCount > posCount) return 'negative';
-    return 'neutral';
-  }
-
-  analyzeCommunicationPatterns(text) {
-    const lowerText = text.toLowerCase();
-    
-    return {
-      powerLevel: this.analyzePowerLanguage(text),
-      style: this.analyzeCommunicationStyle(text),
-      primaryTone: this.basicToneAnalysis(text),
-      emotionalMarkers: this.extractEmotionalMarkers(text),
-      trustScore: this.analyzeTrustIndicators(text),
-      collaborationScore: this.analyzeCollaborationIndicators(text),
-      detectedPatterns: this.detectCommunicationPatterns(text)
-    };
-  }
-
-  analyzeCommunicationStyle(text) {
-    const formalMarkers = ['sincerely', 'regards', 'respectfully', 'dear'];
-    const informalMarkers = ['hey', 'hi', 'thanks', 'cheers'];
-    
-    const formalCount = formalMarkers.filter(marker => text.toLowerCase().includes(marker)).length;
-    const informalCount = informalMarkers.filter(marker => text.toLowerCase().includes(marker)).length;
-    
-    if (formalCount > informalCount) return 'formal';
-    if (informalCount > formalCount) return 'informal';
-    return 'neutral';
-  }
-
-  extractEmotionalMarkers(text) {
-    const markers = [];
-    const emotionalWords = {
-      positive: ['excited', 'happy', 'pleased', 'delighted'],
-      negative: ['disappointed', 'frustrated', 'concerned', 'worried'],
-      neutral: ['noted', 'understood', 'acknowledged']
-    };
-    
-    Object.entries(emotionalWords).forEach(([emotion, words]) => {
-      words.forEach(word => {
-        if (text.toLowerCase().includes(word)) {
-          markers.push({ emotion, word });
+    async loadUserPreferences() {
+        try {
+            const preferences = await new Promise((resolve) => {
+                chrome.storage.local.get(['userPreferences'], (result) => {
+                    resolve(result.userPreferences);
+                });
+            });
+            
+            this.useCloudEnhancement = preferences?.enableCloudEnhancement || false;
+            this.privacyLevel = preferences?.privacyLevel || 'high';
+        } catch (error) {
+            console.warn('Failed to load hybrid preferences:', error);
         }
-      });
-    });
-    
-    return markers;
-  }
-
-  analyzeTrustIndicators(text) {
-    const trustWords = ['trust', 'confidence', 'rely', 'depend', 'believed'];
-    const distrustWords = ['doubt', 'concern', 'question', 'verify', 'check'];
-    
-    const trustCount = trustWords.filter(word => text.toLowerCase().includes(word)).length;
-    const distrustCount = distrustWords.filter(word => text.toLowerCase().includes(word)).length;
-    
-    return Math.max(0, Math.min(100, 50 + (trustCount - distrustCount) * 20));
-  }
-
-  analyzeCollaborationIndicators(text) {
-    const collaborativeWords = ['we', 'our', 'together', 'collaborat', 'partner', 'team'];
-    const individualWords = ['I', 'my', 'me', 'mine', 'alone', 'self'];
-    
-    const collabCount = collaborativeWords.filter(word => text.toLowerCase().includes(word)).length;
-    const indivCount = individualWords.filter(word => text.toLowerCase().includes(word)).length;
-    
-    return Math.max(0, Math.min(100, 50 + (collabCount - indivCount) * 10));
-  }
-
-  detectCommunicationPatterns(text) {
-    const patterns = [];
-    const lowerText = text.toLowerCase();
-    
-    if (lowerText.includes('per my last email')) patterns.push('repetitive_reference');
-    if (lowerText.includes('as I mentioned')) patterns.push('repetitive_emphasis');
-    if (lowerText.includes('just to clarify')) patterns.push('clarification_seeking');
-    if (lowerText.includes('hopefully this helps')) patterns.push('passive_helpful');
-    
-    return patterns;
-  }
-
-  setupPerformanceMonitoring() {
-    // Monitor performance periodically
-    setInterval(() => {
-      this.monitorPerformance();
-    }, 30000); // Every 30 seconds
-  }
-
-  setupCapabilityDetection() {
-    // Re-detect capabilities periodically
-    setInterval(() => {
-      this.capabilities = this.detectCapabilities();
-    }, 60000); // Every minute
-  }
-
-  monitorPerformance() {
-    // Monitor and log performance metrics
-    const memory = performance.memory;
-    if (memory) {
-      const usedMB = Math.round(memory.usedJSHeapSize / 1048576);
-      
-      if (usedMB > 100) {
-        console.warn('High memory usage detected:', usedMB + 'MB');
-      }
     }
-  }
 
-  updatePerformanceMetrics(outcome, duration) {
-    this.performanceMetrics.successRate = outcome === 'success' ? 
-      Math.min(100, this.performanceMetrics.successRate + 1) :
-      Math.max(0, this.performanceMetrics.successRate - 5);
-    
-    if (outcome === 'success') {
-      this.performanceMetrics.localProcessingTime = duration;
+    async analyzeCommunication(content, options = {}) {
+        const {
+            mode = 'auto',
+            requireConsent = true,
+            timeout = 5000
+        } = options;
+
+        console.log(`🦎 Hybrid analysis started (mode: ${mode})`);
+
+        // Always start with local analysis
+        const localAnalysis = await this.localEngine.analyzeCommunication(content, 'quick');
+        
+        // Determine if cloud enhancement is needed and allowed
+        const shouldUseCloud = await this.shouldUseCloudEnhancement(localAnalysis, mode, requireConsent);
+        
+        if (shouldUseCloud) {
+            try {
+                const cloudAnalysis = await this.performCloudAnalysis(content, localAnalysis, timeout);
+                return this.mergeAnalyses(localAnalysis, cloudAnalysis);
+            } catch (cloudError) {
+                console.warn('Cloud analysis failed, using local only:', cloudError);
+                return this.enhanceWithFallback(localAnalysis);
+            }
+        }
+
+        return localAnalysis;
     }
-  }
 
-  getPerformanceReport() {
-    return {
-      ...this.performanceMetrics,
-      capabilities: this.capabilities,
-      timestamp: new Date().toISOString()
-    };
-  }
+    async shouldUseCloudEnhancement(localAnalysis, mode, requireConsent) {
+        // Check user preferences
+        if (!this.useCloudEnhancement) return false;
+        
+        // Check privacy level
+        if (this.privacyLevel === 'high') return false;
+        
+        // Check connectivity
+        if (!await this.isOnline()) return false;
+        
+        // Check if consent is required and given
+        if (requireConsent && !await this.hasCloudConsent()) return false;
+        
+        // Mode-based decisions
+        switch (mode) {
+            case 'local-only':
+                return false;
+            case 'cloud-only':
+                return true;
+            case 'auto':
+            default:
+                return this.needsCloudEnhancement(localAnalysis);
+        }
+    }
+
+    needsCloudEnhancement(localAnalysis) {
+        // Use cloud when local analysis has low confidence
+        if (localAnalysis.confidence < 0.6) return true;
+        
+        // Use cloud for high-risk communications
+        if (localAnalysis.overallRisk > 70) return true;
+        
+        // Use cloud when sarcasm detection is uncertain
+        if (localAnalysis.sarcasmScore > 50 && localAnalysis.sarcasmScore < 80) return true;
+        
+        // Use cloud for complex multimodal analysis
+        if (localAnalysis.multimodalElements?.length > 2) return true;
+        
+        return false;
+    }
+
+    async performCloudAnalysis(content, localAnalysis, timeout) {
+        console.log('☁️ Starting cloud-enhanced analysis');
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        try {
+            const payload = this.prepareCloudPayload(content, localAnalysis);
+            
+            const response = await fetch(this.cloudEndpoints.deepAnalysis, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Client-Version': '2.0.0',
+                    'X-Client-ID': this.getClientId()
+                },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`Cloud API error: ${response.status}`);
+            }
+
+            const cloudData = await response.json();
+            return this.validateCloudResponse(cloudData);
+
+        } catch (error) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
+    }
+
+    prepareCloudPayload(content, localAnalysis) {
+        // Remove any personally identifiable information
+        const sanitizedContent = this.sanitizeContent(content);
+        
+        return {
+            text: sanitizedContent.text,
+            localAnalysis: {
+                confidence: localAnalysis.confidence,
+                riskScore: localAnalysis.overallRisk,
+                sarcasmScore: localAnalysis.sarcasmScore,
+                emotionalTone: localAnalysis.emotional?.tone
+            },
+            context: {
+                contentType: this.detectContentType(content),
+                language: 'en',
+                requiresCulturalContext: true,
+                multimodalElements: content.images?.length || 0
+            },
+            options: {
+                enhanceSentiment: true,
+                culturalAnalysis: true,
+                relationshipDynamics: true,
+                professionalContext: true
+            }
+        };
+    }
+
+    sanitizeContent(content) {
+        // Basic sanitization - remove emails, phone numbers, etc.
+        const sanitizedText = content.text
+            .replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, '[EMAIL]')
+            .replace(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, '[PHONE]')
+            .replace(/\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b/g, '[CREDIT_CARD]');
+            
+        return {
+            ...content,
+            text: sanitizedText
+        };
+    }
+
+    detectContentType(content) {
+        const text = content.text.toLowerCase();
+        
+        if (text.includes('dear') && text.includes('sincerely')) return 'email';
+        if (text.includes('@') && text.length < 280) return 'social_media';
+        if (text.includes('meeting') && text.includes('agenda')) return 'business';
+        if (text.includes('?') && text.length < 150) return 'question';
+        
+        return 'general';
+    }
+
+    validateCloudResponse(cloudData) {
+        const requiredFields = ['enhancedAnalysis', 'confidence', 'culturalContext'];
+        const missingFields = requiredFields.filter(field => !(field in cloudData));
+        
+        if (missingFields.length > 0) {
+            throw new Error(`Invalid cloud response: missing ${missingFields.join(', ')}`);
+        }
+        
+        return {
+            ...cloudData,
+            source: 'cloud-enhanced',
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    mergeAnalyses(localAnalysis, cloudAnalysis) {
+        return {
+            // Prefer cloud analysis when available
+            strategic: cloudAnalysis.enhancedAnalysis?.strategic || localAnalysis.strategic,
+            emotional: cloudAnalysis.enhancedAnalysis?.emotional || localAnalysis.emotional,
+            relational: cloudAnalysis.enhancedAnalysis?.relational || localAnalysis.relational,
+            
+            // Use cloud-enhanced scores with local fallback
+            overallRisk: this.calculateHybridRisk(localAnalysis, cloudAnalysis),
+            sarcasmScore: cloudAnalysis.enhancedAnalysis?.sarcasmScore || localAnalysis.sarcasmScore,
+            
+            // Combine recommendations
+            recommendations: [
+                ...(localAnalysis.recommendations || []),
+                ...(cloudAnalysis.enhancedAnalysis?.recommendations || [])
+            ].slice(0, 5), // Limit to top 5
+            
+            // Metadata
+            source: 'hybrid',
+            confidence: Math.max(localAnalysis.confidence, cloudAnalysis.confidence),
+            culturalContext: cloudAnalysis.culturalContext,
+            timestamp: new Date().toISOString(),
+            
+            // Debug info
+            _hybridInfo: {
+                localConfidence: localAnalysis.confidence,
+                cloudConfidence: cloudAnalysis.confidence,
+                usedCloud: true
+            }
+        };
+    }
+
+    calculateHybridRisk(localAnalysis, cloudAnalysis) {
+        const localRisk = localAnalysis.overallRisk || 50;
+        const cloudRisk = cloudAnalysis.enhancedAnalysis?.overallRisk || 50;
+        const cloudConfidence = cloudAnalysis.confidence || 0.5;
+        
+        // Weighted average based on cloud confidence
+        return Math.round(
+            (localRisk * (1 - cloudConfidence)) + 
+            (cloudRisk * cloudConfidence)
+        );
+    }
+
+    enhanceWithFallback(localAnalysis) {
+        // Add fallback enhancements when cloud is unavailable
+        return {
+            ...localAnalysis,
+            culturalContext: this.generateFallbackCulturalContext(),
+            recommendations: [
+                ...(localAnalysis.recommendations || []),
+                'Consider cultural context in communication',
+                'Be mindful of timezone differences in global teams'
+            ],
+            source: 'local-enhanced',
+            _hybridInfo: {
+                usedCloud: false,
+                fallbackEnhancement: true
+            }
+        };
+    }
+
+    generateFallbackCulturalContext() {
+        return {
+            directness: 'medium',
+            formality: 'professional',
+            contextStyle: 'neutral',
+            note: 'Based on general professional communication patterns'
+        };
+    }
+
+    async isOnline() {
+        try {
+            const response = await fetch('https://www.google.com/favicon.ico', {
+                method: 'HEAD',
+                cache: 'no-cache'
+            });
+            return response.ok;
+        } catch {
+            return false;
+        }
+    }
+
+    async hasCloudConsent() {
+        return new Promise((resolve) => {
+            chrome.storage.local.get(['cloudConsent'], (result) => {
+                resolve(result.cloudConsent === true);
+            });
+        });
+    }
+
+    async requestCloudConsent() {
+        return new Promise((resolve) => {
+            // Show consent dialog
+            chrome.runtime.sendMessage({
+                action: 'showConsentDialog',
+                data: {
+                    title: 'Cloud Enhancement',
+                    message: 'Enable cloud-based analysis for improved accuracy? Your data will be anonymized.',
+                    options: ['Accept', 'Decline']
+                }
+            }, (response) => {
+                const accepted = response?.choice === 'Accept';
+                
+                if (accepted) {
+                    chrome.storage.local.set({ cloudConsent: true });
+                }
+                
+                resolve(accepted);
+            });
+        });
+    }
+
+    getClientId() {
+        // Generate or retrieve anonymous client ID
+        let clientId = localStorage.getItem('chalamandra_client_id');
+        if (!clientId) {
+            clientId = 'client_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chalamandra_client_id', clientId);
+        }
+        return clientId;
+    }
+
+    setupConnectivityCheck() {
+        // Periodic connectivity checks
+        setInterval(() => {
+            this.isOnline().then(online => {
+                this.isOnlineStatus = online;
+            });
+        }, 30000); // Check every 30 seconds
+    }
+
+    // Performance monitoring
+    async performanceCheck() {
+        const localStart = performance.now();
+        await this.localEngine.analyzeCommunication({ text: 'Test performance' }, 'quick');
+        const localTime = performance.now() - localStart;
+
+        let cloudTime = null;
+        if (await this.shouldUseCloudEnhancement({ confidence: 0.5 }, 'auto', false)) {
+            const cloudStart = performance.now();
+            try {
+                await this.performCloudAnalysis(
+                    { text: 'Test performance' }, 
+                    { confidence: 0.5 }, 
+                    3000
+                );
+                cloudTime = performance.now() - cloudStart;
+            } catch {
+                cloudTime = 'failed';
+            }
+        }
+
+        return {
+            localAnalysisTime: Math.round(localTime),
+            cloudAnalysisTime: cloudTime,
+            hybridEnabled: this.useCloudEnhancement,
+            isOnline: this.isOnlineStatus
+        };
+    }
 }
 
-// Export for use in service worker
 if (typeof module !== 'undefined') {
-  module.exports = AdvancedHybridOrchestrator;
+    module.exports = HybridOrchestrator;
 }
