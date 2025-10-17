@@ -141,16 +141,10 @@ class ExplainableAI {
   identifyKeyElements(analysis, originalText) {
     const elements = [];
     
-    // Risk words that may indicate authoritarian language
-    const riskWords = ['should', 'need to', 'incorrect', 'error', 'wrong', 'failed', 'problem', 'must'];
+    const riskWords = ['should', 'need to', 'incorrect', 'error', 'wrong', 'failed', 'problem'];
+    const positiveWords = ['thanks', 'appreciate', 'excellent', 'collaboration', 'great', 'teamwork'];
+    const passiveAggressiveWords = ['per my last email', 'as I mentioned', 'you should know', 'hopefully'];
     
-    // Positive words that build constructive communication
-    const positiveWords = ['thanks', 'appreciate', 'excellent', 'collaboration', 'great', 'teamwork', 'please'];
-    
-    // Passive-aggressive patterns
-    const passiveAggressiveWords = ['per my last email', 'as I mentioned', 'you should know', 'hopefully', 'just wondering'];
-    
-    // Detect risk words
     riskWords.forEach(word => {
       if (originalText.toLowerCase().includes(word)) {
         elements.push({
@@ -162,7 +156,6 @@ class ExplainableAI {
       }
     });
     
-    // Detect positive words
     positiveWords.forEach(word => {
       if (originalText.toLowerCase().includes(word)) {
         elements.push({
@@ -174,7 +167,6 @@ class ExplainableAI {
       }
     });
 
-    // Detect passive-aggressive language
     passiveAggressiveWords.forEach(word => {
       if (originalText.toLowerCase().includes(word)) {
         elements.push({
@@ -192,7 +184,6 @@ class ExplainableAI {
   generateActionableRecommendations(analysis) {
     const recommendations = [];
     
-    // Strategic recommendations
     if (analysis.strategic?.powerDynamics === 'high') {
       recommendations.push("Consider more collaborative and less directive language");
     }
@@ -201,16 +192,14 @@ class ExplainableAI {
       recommendations.push("Be more explicit about intentions and expectations");
     }
     
-    // Emotional recommendations
     if (analysis.emotional?.tone === 'negative') {
       recommendations.push("Rephrase to use more constructive language");
     }
     
     if (analysis.emotional?.subtext === 'contradictory') {
-      recommendations.push("Align explicit message with emotional signals");
+      recommendations.push("Aline explicit message with emotional signals");
     }
     
-    // Relational recommendations
     if (analysis.relational?.trust === 'low') {
       recommendations.push("Include elements that build trust and transparency");
     }
@@ -219,7 +208,6 @@ class ExplainableAI {
       recommendations.push("Encourage connection and collaboration language");
     }
 
-    // Sarcasm-specific recommendations
     if (analysis.sarcasmScore > 70) {
       recommendations.push("Rephrase to eliminate sarcasm - use direct communication");
     }
@@ -228,28 +216,23 @@ class ExplainableAI {
   }
 
   calculateOverallScore(analysis) {
-    let score = 50; // Base score
+    let score = 50;
     
-    // Adjust based on emotional analysis
     if (analysis.emotional?.score) {
       score += (analysis.emotional.score - 50) * 0.3;
     }
     
-    // Adjust based on strategic risks
     if (analysis.strategic?.powerDynamics === 'high') score -= 15;
-    if (analysis.strategic?.hiddenAgendas === 'high') score -= 20;
+    if (analysis.strategic?.agendasOcultas === 'high') score -= 20;
     
-    // Adjust based on relational factors
     if (analysis.relational?.trust === 'high') score += 10;
     if (analysis.relational?.trust === 'low') score -= 15;
     
-    // Heavy penalty for sarcasm
     if (analysis.sarcasmScore > 70) score -= 25;
     
     return Math.max(0, Math.min(100, score));
   }
 
-  // Create visualization data for UI display
   createVisualizationData(analysis, originalText) {
     const explanations = this.generateExplanations(analysis, originalText);
     
@@ -268,7 +251,6 @@ class ExplainableAI {
     };
   }
 
-  // Generate executive report for business context
   generateExecutiveReport(analysis, originalText) {
     const explanations = this.generateExplanations(analysis, originalText);
     const overallScore = this.calculateOverallScore(analysis);
@@ -284,7 +266,6 @@ class ExplainableAI {
     };
   }
 
-  // Simple explanation for quick insights
   generateQuickInsights(analysis) {
     const insights = [];
     
