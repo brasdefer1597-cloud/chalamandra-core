@@ -29,7 +29,7 @@ class MultimodalAnalyzer {
 
     visualElements.forEach(element => {
       if (element.type === 'emoji') {
-        context.emojis.push(element.content);
+        context.emojis.push(element.contenido);
       } else if (element.type === 'image') {
         context.images.push({
           src: element.src,
@@ -61,7 +61,7 @@ class MultimodalAnalyzer {
       recommendations.push({
         level: 'high',
         message: 'High probability of sarcasm detected',
-        action: 'Reconsider message or clarify intention',
+        action: 'Reconsider the message or clarify intention',
         urgency: 'high'
       });
     }
@@ -69,7 +69,7 @@ class MultimodalAnalyzer {
     if (analysis.detectedPatterns.includes('incongruent_emoji')) {
       recommendations.push({
         level: 'medium', 
-        message: 'Emojis do not match text tone',
+        message: 'Emojis do not match the text tone',
         action: 'Review emojis used in context',
         urgency: 'medium'
       });
@@ -79,7 +79,7 @@ class MultimodalAnalyzer {
       recommendations.push({
         level: 'low',
         message: 'Excessive positivity may be perceived as sarcasm',
-        action: 'Balance message tone',
+        action: 'Balance the message tone',
         urgency: 'low'
       });
     }
@@ -109,12 +109,55 @@ class MultimodalAnalyzer {
     }));
   }
 
-  processAttachments(attachments) {
-    return attachments.map(attachment => ({
+  processAttachments(adjuntos) {
+    return adjuntos.map(adjunto => ({
       type: 'image',
-      src: attachment.url,
-      alt: attachment.description || '',
-      format: attachment.type
+      src: adjunto.url,
+      alt: adjunto.descripcion || '',
+      formato: adjunto.tipo
     }));
   }
+
+  async analyzeTextWithImages(text, imageDescriptions = []) {
+    const visualElements = imageDescriptions.map(desc => ({
+      type: 'image',
+      alt: desc,
+      context: this.inferImageContext(desc)
+    }));
+
+    return await this.detectIncongruence(text, visualElements);
+  }
+
+  getCommunicationScore(analysis) {
+    const baseScore = 100 - analysis.sarcasmScore;
+    const patternPenalty = analysis.detectedPatterns.length * 5;
+    
+    return Math.max(0, baseScore - patternPenalty);
+  }
+
+  generateImprovementTips(analysis) {
+    const tips = [];
+    
+    if (analysis.sarcasmScore > 50) {
+      tips.push({
+        tip: "Use direct language instead of sarcasm",
+        reason: "Sarcasm often leads to misunderstandings in professional communication",
+        example: "Instead of 'Great job breaking the system', try 'Let's work together to fix this issue'"
+      });
+    }
+    
+    if (analysis.detectedPatterns.includes('incongruent_emoji')) {
+      tips.push({
+        tip: "Align emojis with your message tone",
+        reason: "Conflicting signals between text and emojis confuse readers",
+        example: "If discussing a serious issue, avoid using 😊 or 🎉"
+      });
+    }
+
+    return tips;
+  }
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = MultimodalAnalyzer;
 }
