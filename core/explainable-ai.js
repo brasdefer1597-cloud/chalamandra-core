@@ -4,7 +4,7 @@ class ExplainableAI {
       strategic: {
         power_dynamics: {
           low: "Collaborative and balanced communication",
-          medium: "Some indications of hierarchical language", 
+          medium: "Some indications of hierarchy in language", 
           high: "Directive and hierarchical language detected"
         },
         hidden_agendas: {
@@ -141,9 +141,9 @@ class ExplainableAI {
   identifyKeyElements(analysis, originalText) {
     const elements = [];
     
-    // Simple keyword analysis (in real implementation would use SHAP/LIME)
-    const riskWords = ['should', 'need to', 'wrong', 'error'];
-    const positiveWords = ['thanks', 'appreciate', 'excellent', 'collaboration'];
+    const riskWords = ['should', 'need to', 'incorrect', 'error', 'wrong', 'failed', 'problem'];
+    const positiveWords = ['thanks', 'appreciate', 'excellent', 'collaboration', 'great', 'teamwork'];
+    const passiveAggressiveWords = ['per my last email', 'as I mentioned', 'you should know', 'hopefully'];
     
     riskWords.forEach(word => {
       if (originalText.toLowerCase().includes(word)) {
@@ -167,13 +167,23 @@ class ExplainableAI {
       }
     });
 
+    passiveAggressiveWords.forEach(word => {
+      if (originalText.toLowerCase().includes(word)) {
+        elements.push({
+          type: 'passive_aggressive',
+          element: word,
+          impact: 'Can create tension and defensiveness',
+          suggestion: 'Rephrase to be more direct and collaborative'
+        });
+      }
+    });
+
     return elements;
   }
 
   generateActionableRecommendations(analysis) {
     const recommendations = [];
     
-    // Recommendations based on strategic analysis
     if (analysis.strategic?.powerDynamics === 'high') {
       recommendations.push("Consider more collaborative and less directive language");
     }
@@ -182,16 +192,14 @@ class ExplainableAI {
       recommendations.push("Be more explicit about intentions and expectations");
     }
     
-    // Recommendations based on emotional analysis
     if (analysis.emotional?.tone === 'negative') {
       recommendations.push("Rephrase to use more constructive language");
     }
     
     if (analysis.emotional?.subtext === 'contradictory') {
-      recommendations.push("Align explicit message with emotional signals");
+      recommendations.push("Aline explicit message with emotional signals");
     }
     
-    // Recommendations based on relational analysis
     if (analysis.relational?.trust === 'low') {
       recommendations.push("Include elements that build trust and transparency");
     }
@@ -200,37 +208,64 @@ class ExplainableAI {
       recommendations.push("Encourage connection and collaboration language");
     }
 
+    if (analysis.sarcasmScore > 70) {
+      recommendations.push("Rephrase to eliminate sarcasm - use direct communication");
+    }
+
     return recommendations;
   }
 
   calculateOverallScore(analysis) {
-    let score = 50; // Base score
+    let score = 50;
     
-    // Adjust based on emotional analysis
     if (analysis.emotional?.score) {
       score += (analysis.emotional.score - 50) * 0.3;
     }
     
-    // Adjust based on strategic risks
     if (analysis.strategic?.powerDynamics === 'high') score -= 15;
-    if (analysis.strategic?.hiddenAgendas === 'high') score -= 20;
+    if (analysis.strategic?.agendasOcultas === 'high') score -= 20;
     
-    // Adjust based on relational factors
     if (analysis.relational?.trust === 'high') score += 10;
     if (analysis.relational?.trust === 'low') score -= 15;
+    
+    if (analysis.sarcasmScore > 70) score -= 25;
     
     return Math.max(0, Math.min(100, score));
   }
 
-  // Method for demo - create visual explanation
-  createDemoVisualization(analysis, originalText) {
+  createVisualizationData(analysis, originalText) {
     const explanations = this.generateExplanations(analysis, originalText);
     
     return {
       summary: explanations.summary,
-      alerts: explanations.recommendations.filter(rec => rec.includes('🚨') || rec.includes('Consider')),
-      highlightedElements: explanations.keyElements.slice(0, 3),
-      score: this.calculateOverallScore(analysis)
+      alertas: explanations.recomendaciones.filter(rec => 
+        rec.includes('rephrase') || rec.includes('eliminate') || rec.includes('high-risk')
+      ),
+      elementosDestacados: explanations.elementosClave.slice(0, 3),
+      puntuacion: this.calcularPuntuacionGeneral(analysis),
+      dimensiones: {
+        estrategico: analysis.estrategico ? 70 : 50,
+        emocional: analysis.emocional?.score || 50,
+        relacional: analysis.relacional ? 65 : 50
+      }
     };
   }
+
+  generarReporteEjecutivo(analysis, textoOriginal) {
+    const explicaciones = this.generarExplicaciones(analysis, textoOriginal);
+    const puntuacion = this.calcularPuntuacionGeneral(analysis);
+    
+    return {
+      titulo: "Reporte de Análisis de Comunicación",
+      puntuacionGeneral: puntuacion,
+      nivelRiesgo: puntuacion >= 80 ? "Bajo" : puntuacion >= 60 ? "Medio" : "Alto",
+      resumen: explicaciones.resumen,
+      recomendacionesPrioritarias: explicaciones.recomendaciones.slice(0, 3),
+      elementosClave: explicaciones.elementosClave.filter(e => e.tipo === 'risk').slice(0, 2)
+    };
+  }
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = ExplainableAI;
 }
