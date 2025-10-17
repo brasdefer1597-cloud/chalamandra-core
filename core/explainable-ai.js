@@ -141,10 +141,16 @@ class ExplainableAI {
   identifyKeyElements(analysis, originalText) {
     const elements = [];
     
-    const riskWords = ['should', 'need to', 'incorrect', 'error', 'wrong', 'failed', 'problem'];
-    const positiveWords = ['thanks', 'appreciate', 'excellent', 'collaboration', 'great', 'teamwork'];
-    const passiveAggressiveWords = ['per my last email', 'as I mentioned', 'you should know', 'hopefully'];
+    // Risk words that may indicate authoritarian language
+    const riskWords = ['should', 'need to', 'incorrect', 'error', 'wrong', 'failed', 'problem', 'must'];
     
+    // Positive words that build constructive communication
+    const positiveWords = ['thanks', 'appreciate', 'excellent', 'collaboration', 'great', 'teamwork', 'please'];
+    
+    // Passive-aggressive patterns
+    const passiveAggressiveWords = ['per my last email', 'as I mentioned', 'you should know', 'hopefully', 'just wondering'];
+    
+    // Detect risk words
     riskWords.forEach(word => {
       if (originalText.toLowerCase().includes(word)) {
         elements.push({
@@ -156,6 +162,7 @@ class ExplainableAI {
       }
     });
     
+    // Detect positive words
     positiveWords.forEach(word => {
       if (originalText.toLowerCase().includes(word)) {
         elements.push({
@@ -167,6 +174,7 @@ class ExplainableAI {
       }
     });
 
+    // Detect passive-aggressive language
     passiveAggressiveWords.forEach(word => {
       if (originalText.toLowerCase().includes(word)) {
         elements.push({
@@ -184,6 +192,7 @@ class ExplainableAI {
   generateActionableRecommendations(analysis) {
     const recommendations = [];
     
+    // Strategic recommendations
     if (analysis.strategic?.powerDynamics === 'high') {
       recommendations.push("Consider more collaborative and less directive language");
     }
@@ -192,14 +201,16 @@ class ExplainableAI {
       recommendations.push("Be more explicit about intentions and expectations");
     }
     
+    // Emotional recommendations
     if (analysis.emotional?.tone === 'negative') {
       recommendations.push("Rephrase to use more constructive language");
     }
     
     if (analysis.emotional?.subtext === 'contradictory') {
-      recommendations.push("Aline explicit message with emotional signals");
+      recommendations.push("Align explicit message with emotional signals");
     }
     
+    // Relational recommendations
     if (analysis.relational?.trust === 'low') {
       recommendations.push("Include elements that build trust and transparency");
     }
@@ -208,6 +219,7 @@ class ExplainableAI {
       recommendations.push("Encourage connection and collaboration language");
     }
 
+    // Sarcasm-specific recommendations
     if (analysis.sarcasmScore > 70) {
       recommendations.push("Rephrase to eliminate sarcasm - use direct communication");
     }
@@ -216,53 +228,79 @@ class ExplainableAI {
   }
 
   calculateOverallScore(analysis) {
-    let score = 50;
+    let score = 50; // Base score
     
+    // Adjust based on emotional analysis
     if (analysis.emotional?.score) {
       score += (analysis.emotional.score - 50) * 0.3;
     }
     
+    // Adjust based on strategic risks
     if (analysis.strategic?.powerDynamics === 'high') score -= 15;
-    if (analysis.strategic?.agendasOcultas === 'high') score -= 20;
+    if (analysis.strategic?.hiddenAgendas === 'high') score -= 20;
     
+    // Adjust based on relational factors
     if (analysis.relational?.trust === 'high') score += 10;
     if (analysis.relational?.trust === 'low') score -= 15;
     
+    // Heavy penalty for sarcasm
     if (analysis.sarcasmScore > 70) score -= 25;
     
     return Math.max(0, Math.min(100, score));
   }
 
+  // Create visualization data for UI display
   createVisualizationData(analysis, originalText) {
     const explanations = this.generateExplanations(analysis, originalText);
     
     return {
       summary: explanations.summary,
-      alertas: explanations.recomendaciones.filter(rec => 
+      alerts: explanations.recommendations.filter(rec => 
         rec.includes('rephrase') || rec.includes('eliminate') || rec.includes('high-risk')
       ),
-      elementosDestacados: explanations.elementosClave.slice(0, 3),
-      puntuacion: this.calcularPuntuacionGeneral(analysis),
-      dimensiones: {
-        estrategico: analysis.estrategico ? 70 : 50,
-        emocional: analysis.emocional?.score || 50,
-        relacional: analysis.relacional ? 65 : 50
+      highlightedElements: explanations.keyElements.slice(0, 3),
+      overallScore: this.calculateOverallScore(analysis),
+      dimensions: {
+        strategic: analysis.strategic ? 70 : 50,
+        emotional: analysis.emotional?.score || 50,
+        relational: analysis.relational ? 65 : 50
       }
     };
   }
 
-  generarReporteEjecutivo(analysis, textoOriginal) {
-    const explicaciones = this.generarExplicaciones(analysis, textoOriginal);
-    const puntuacion = this.calcularPuntuacionGeneral(analysis);
+  // Generate executive report for business context
+  generateExecutiveReport(analysis, originalText) {
+    const explanations = this.generateExplanations(analysis, originalText);
+    const overallScore = this.calculateOverallScore(analysis);
     
     return {
-      titulo: "Reporte de Análisis de Comunicación",
-      puntuacionGeneral: puntuacion,
-      nivelRiesgo: puntuacion >= 80 ? "Bajo" : puntuacion >= 60 ? "Medio" : "Alto",
-      resumen: explicaciones.resumen,
-      recomendacionesPrioritarias: explicaciones.recomendaciones.slice(0, 3),
-      elementosClave: explicaciones.elementosClave.filter(e => e.tipo === 'risk').slice(0, 2)
+      title: "Communication Analysis Report",
+      overallScore: overallScore,
+      riskLevel: overallScore >= 80 ? "Low" : overallScore >= 60 ? "Medium" : "High",
+      summary: explanations.summary,
+      priorityRecommendations: explanations.recommendations.slice(0, 3),
+      keyRiskElements: explanations.keyElements.filter(e => e.type === 'risk').slice(0, 2),
+      confidence: analysis.confidence || 0.7
     };
+  }
+
+  // Simple explanation for quick insights
+  generateQuickInsights(analysis) {
+    const insights = [];
+    
+    if (analysis.sarcasmScore > 70) {
+      insights.push("🤔 High sarcasm detected - may cause misunderstandings");
+    }
+    
+    if (analysis.emotional?.tone === 'negative') {
+      insights.push("😟 Negative tone identified - consider more positive language");
+    }
+    
+    if (analysis.strategic?.powerDynamics === 'high') {
+      insights.push("⚡ Directive language used - collaborative approach recommended");
+    }
+    
+    return insights;
   }
 }
 
