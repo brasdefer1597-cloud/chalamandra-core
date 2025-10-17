@@ -1,477 +1,285 @@
-// Service Worker for Chalamandra Core - Manifest V3
-class ChalamandraServiceWorker {
+// Service Worker for Chalamandra Core
+console.log('🦎 Chalamandra Core Service Worker initialized');
+
+class BackgroundManager {
   constructor() {
-    this.analysisHistory = [];
-    this.hybridOrchestrator = new HybridOrchestrator();
+    this.analysisCache = new Map();
     this.init();
   }
 
   init() {
-    this.setupInstallation();
-    this.setupMessageHandlers();
-    this.setupAnalysisOrchestration();
-    console.log('🦎 Chalamandra Core Service Worker initialized');
-  }
-
-  setupInstallation() {
+    // Listen for extension installation
     chrome.runtime.onInstalled.addListener(() => {
       console.log('Chalamandra Core installed successfully');
-      
-      // Initialize storage with default values
-      chrome.storage.local.set({
-        analysisHistory: [],
-        userPreferences: {
-          autoAnalyze: true,
-          privacyMode: 'local-first',
-          riskThreshold: 70
-        },
-        performanceStats: {
-          totalAnalyses: 0,
-          avgResponseTime: 0,
-          memoryUsage: 'low'
-        }
-      });
+      this.initializeStorage();
     });
-  }
 
-  setupMessageHandlers() {
-    // Handle messages from popup and content scripts
+    // Listen for messages from content scripts and popup
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      this.handleMessage(request, sender, sendResponse);
+      return true; // Keep message channel open for async responses
+    });
+
+    // Handle context menu (future feature)
+    this.createContextMenu();
+  }
+
+  initializeStorage() {
+    chrome.storage.local.get(['userPreferences'], (result) => {
+      if (!result.userPreferences) {
+        const defaultPreferences = {
+          analysisMode: 'quick',
+          enableSarcasmDetection: true,
+          enableMultimodal: true,
+          privacyLevel: 'high'
+        };
+        chrome.storage.local.set({ userPreferences: defaultPreferences });
+      }
+    });
+  }
+
+  async handleMessage(request, sender, sendResponse) {
+    try {
       switch (request.action) {
-        case 'logAnalysis':
-          this.handleAnalysisLog(request.data);
+        case 'analyzeCommunication':
+          const analysis = await this.analyzeContent(request.data);
+          sendResponse({ success: true, data: analysis });
           break;
-        
-        case 'hybridAnalysis':
-          this.handleHybridAnalysis(request.data)
-            .then(result => sendResponse({ success: true, result }))
-            .catch(error => sendResponse({ success: false, error: error.message }));
-          return true; // Async response
-          
+
         case 'getAnalysisHistory':
-          this.getAnalysisHistory()
-            .then(history => sendResponse({ success: true, history }))
-            .catch(error => sendResponse({ success: false, error: error.message }));
-          return true;
-          
-        case 'clearHistory':
-          this.clearAnalysisHistory()
-            .then(() => sendResponse({ success: true }))
-            .catch(error => sendResponse({ success: false, error: error.message }));
-          return true;
-      }
-    });
-  }
+          const history = await this.getAnalysisHistory();
+          sendResponse({ success: true, data: history });
+          break;
 
-  setupAnalysisOrchestration() {
-    // Handle extension icon click for quick analysis
-    chrome.action.onClicked.addListener((tab) => {
-      this.triggerQuickAnalysis(tab);
-    });
-  }
+        case 'updatePreferences':
+          await this.updatePreferences(request.data);
+          sendResponse({ success: true });
+          break;
 
-  async handleAnalysisLog(analysisData) {
-    try {
-      // Store analysis in history
-      const analysisRecord = {
-        ...analysisData,
-        timestamp: new Date().toISOString(),
-        url: analysisData.analysis?.url || 'unknown'
-      };
-      
-      this.analysisHistory.unshift(analysisRecord);
-      
-      // Keep only last 100 analyses
-      if (this.analysisHistory.length > 100) {
-        this.analysisHistory = this.analysisHistory.slice(0, 100);
-      }
-      
-      // Update storage
-      await chrome.storage.local.set({
-        analysisHistory: this.analysisHistory
-      });
-      
-      // Update performance stats
-      await this.updatePerformanceStats();
-      
-      console.log('Analysis logged:', analysisRecord);
-      
-    } catch (error) {
-      console.error('Error logging analysis:', error);
-    }
-  }
+        case 'quickAnalysis':
+          const quickResult = await this.quickAnalysis(request.text);
+          sendResponse({ success: true, data: quickResult });
+          break;
 
-  async handleHybridAnalysis(requestData) {
-    const { content, mode, useServerFallback = true } = requestData;
-    
-    try {
-      const result = await this.hybridOrchestrator.executeAnalysis(content, mode, useServerFallback);
-      
-      // Log successful analysis
-      await this.handleAnalysisLog({
-        mode,
-        analysis: result,
-        source: 'hybrid'
-      });
-      
-      return result;
-      
-    } catch (error) {
-      console.error('Hybrid analysis failed:', error);
-      
-      // Log failed analysis
-      await this.handleAnalysisLog({
-        mode,
-        error: error.message,
-        source: 'hybrid',
-        status: 'failed'
-      });
-      
-      throw error;
-    }
-  }
-
-  async triggerQuickAnalysis(tab) {
-    try {
-      // Send message to content script to trigger analysis
-      await chrome.tabs.sendMessage(tab.id, {
-        action: 'quickAnalyze',
-        source: 'toolbar'
-      });
-      
-    } catch (error) {
-      console.error('Error triggering quick analysis:', error);
-    }
-  }
-
-  async getAnalysisHistory() {
-    try {
-      const result = await chrome.storage.local.get(['analysisHistory']);
-      return result.analysisHistory || [];
-    } catch (error) {
-      console.error('Error getting analysis history:', error);
-      return [];
-    }
-  }
-
-  async clearAnalysisHistory() {
-    try {
-      this.analysisHistory = [];
-      await chrome.storage.local.set({ analysisHistory: [] });
-      return true;
-    } catch (error) {
-      console.error('Error clearing analysis history:', error);
-      throw error;
-    }
-  }
-
-  async updatePerformanceStats() {
-    try {
-      const result = await chrome.storage.local.get(['performanceStats']);
-      const stats = result.performanceStats || {
-        totalAnalyses: 0,
-        avgResponseTime: 0,
-        memoryUsage: 'low'
-      };
-      
-      stats.totalAnalyses = this.analysisHistory.length;
-      
-      await chrome.storage.local.set({ performanceStats: stats });
-      
-    } catch (error) {
-      console.error('Error updating performance stats:', error);
-    }
-  }
-
-  // Performance monitoring
-  monitorPerformance() {
-    // Monitor memory usage (simplified)
-    const memoryInfo = performance.memory;
-    if (memoryInfo) {
-      const usedMB = Math.round(memoryInfo.usedJSHeapSize / 1048576);
-      const memoryLevel = usedMB < 50 ? 'low' : usedMB < 100 ? 'medium' : 'high';
-      
-      chrome.storage.local.set({
-        memoryUsage: memoryLevel
-      });
-    }
-  }
-}
-
-// Advanced hybrid analysis orchestrator
-class HybridOrchestrator {
-  constructor() {
-    this.modes = {
-      QUICK: 'quick',      // 100% local - Chrome AI APIs
-      DEEP: 'deep',        // Hybrid - Local + Server enhancement  
-      MULTIMODAL: 'multimodal' // Server-powered advanced features
-    };
-  }
-
-  async executeAnalysis(content, mode = this.modes.QUICK, useServerFallback = true) {
-    console.log(`🦎 Executing ${mode} analysis...`);
-    
-    try {
-      switch (mode) {
-        case this.modes.QUICK:
-          return await this.quickLocalAnalysis(content);
-        
-        case this.modes.DEEP:
-          return await this.hybridDeepAnalysis(content);
-        
-        case this.modes.MULTIMODAL:
-          return await this.serverPoweredMultimodalAnalysis(content);
-        
         default:
-          return await this.quickLocalAnalysis(content);
+          sendResponse({ success: false, error: 'Unknown action' });
       }
     } catch (error) {
-      if (useServerFallback) {
-        console.log('Falling back to server analysis...');
-        return await this.serverFallbackAnalysis(content);
+      console.error('Background message error:', error);
+      sendResponse({ success: false, error: error.message });
+    }
+  }
+
+  async analyzeContent(content) {
+    try {
+      // Check cache first
+      const cacheKey = this.generateCacheKey(content);
+      if (this.analysisCache.has(cacheKey)) {
+        return this.analysisCache.get(cacheKey);
       }
-      throw error;
-    }
-  }
 
-  async quickLocalAnalysis(content) {
-    // Use Chrome's built-in AI APIs for local processing
-    if (typeof ai !== 'undefined' && ai.prompt) {
-      const analysis = await ai.prompt({
-        text: content.text,
-        instructions: `
-          Perform quick communication analysis focusing on:
-          1. Basic tone and sentiment
-          2. Clear strategic intent
-          3. Professional relationship context
-          
-          Return structured JSON with scores and brief insights.
-        `
-      });
-
-      return {
-        ...this.parseAIResponse(analysis),
-        processing: {
-          location: 'local',
-          apisUsed: ['Prompt API'],
-          processingTime: 'instant',
-          privacyLevel: '100%_local'
-        }
-      };
-    }
-    
-    // Fallback to heuristic analysis
-    return this.heuristicAnalysis(content);
-  }
-
-  async hybridDeepAnalysis(content) {
-    // Step 1: Quick local analysis
-    const localAnalysis = await this.quickLocalAnalysis(content);
-    
-    // Step 2: Server enhancement for deeper insights
-    if (this.requiresEnhancement(localAnalysis)) {
-      const enhancedAnalysis = await this.secureServerEnhancement(
-        this.anonymizeForServer(localAnalysis)
-      );
+      // Get user preferences
+      const preferences = await this.getUserPreferences();
       
-      return {
-        ...localAnalysis,
-        enhancedInsights: enhancedAnalysis,
-        processing: {
-          ...localAnalysis.processing,
-          location: 'hybrid',
-          apisUsed: ['Prompt API', 'Server Enhancement'],
-          privacyLevel: 'hybrid_secure'
-        }
-      };
-    }
-    
-    return localAnalysis;
-  }
+      // Use Chrome AI APIs for analysis
+      let analysis;
+      if (typeof ai !== 'undefined' && ai.prompt) {
+        analysis = await this.useChromeAI(content, preferences);
+      } else {
+        analysis = this.fallbackAnalysis(content);
+      }
 
-  async serverPoweredMultimodalAnalysis(content) {
-    // User explicitly chooses server-powered analysis
-    const userConsent = await this.getUserConsent('multimodal_analysis');
-    
-    if (userConsent) {
-      const serverAnalysis = await this.advancedServerAnalysis(content);
+      // Cache the result
+      this.analysisCache.set(cacheKey, analysis);
       
-      return {
-        ...serverAnalysis,
-        processing: {
-          location: 'server',
-          capabilities: ['multimodal', 'sarcasm_detection', 'cultural_context'],
-          privacyLevel: 'server_processed_with_consent'
-        }
-      };
-    } else {
-      // Fallback to hybrid analysis
-      return await this.hybridDeepAnalysis(content);
+      // Store in history (limited to last 50 analyses)
+      await this.storeInHistory(analysis);
+
+      return analysis;
+
+    } catch (error) {
+      console.error('Analysis error:', error);
+      return this.fallbackAnalysis(content);
     }
   }
 
-  async serverFallbackAnalysis(content) {
-    // Fallback when Chrome AI APIs are unavailable
-    console.log('Using server fallback analysis');
-    
-    // Simulate server analysis (in real implementation, this would call an API)
+  async useChromeAI(content, preferences) {
+    const prompt = `
+      Analyze this professional communication:
+
+      TEXT: "${content.text}"
+
+      Analyze across these dimensions:
+      1. Strategic: power dynamics, hidden agendas, negotiation context
+      2. Emotional: tone, sentiment, subtext, psychological factors  
+      3. Relational: trust indicators, connection quality, social dynamics
+
+      Return JSON with:
+      - strategic: { powerDynamics: low/medium/high, hiddenAgendas: boolean, negotiation: string }
+      - emotional: { tone: string, score: 0-100, subtext: string }
+      - relational: { trust: low/medium/high, connection: weak/moderate/strong }
+      - overallRisk: 0-100
+      - recommendations: string[]
+    `;
+
+    const response = await ai.prompt({
+      text: prompt,
+      instructions: "Provide structured JSON analysis of professional communication"
+    });
+
+    return this.processAIResponse(response, content);
+  }
+
+  processAIResponse(response, originalContent) {
+    try {
+      let analysis;
+      
+      if (typeof response === 'string') {
+        // Extract JSON from string response
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : this.fallbackAnalysis(originalContent);
+      } else {
+        analysis = response;
+      }
+
+      // Add metadata
+      return {
+        ...analysis,
+        timestamp: new Date().toISOString(),
+        contentPreview: originalContent.text.substring(0, 100) + '...',
+        source: 'chrome-ai',
+        confidence: 0.8
+      };
+
+    } catch (error) {
+      console.warn('AI response processing failed, using fallback');
+      return this.fallbackAnalysis(originalContent);
+    }
+  }
+
+  fallbackAnalysis(content) {
     return {
       strategic: {
-        powerDynamics: 'balanced',
-        hiddenAgendas: 'not_detected',
-        negotiationContext: 'standard'
-      },
-      emotional: {
-        tone: 'professional',
-        score: 75,
-        subtext: 'clear_communication'
-      },
-      relational: {
-        trustIndicators: 'professional',
-        connectionPoints: 'collaborative'
-      },
-      processing: {
-        location: 'server_fallback',
-        note: 'Chrome AI APIs unavailable'
-      }
-    };
-  }
-
-  heuristicAnalysis(content) {
-    // Basic analysis when no AI APIs are available
-    return {
-      strategic: {
-        powerDynamics: 'balanced',
-        hiddenAgendas: 'not_detected'
+        powerDynamics: 'medium',
+        hiddenAgendas: false,
+        negotiation: 'standard'
       },
       emotional: {
         tone: 'neutral',
         score: 50,
-        subtext: 'standard_communication'
+        subtext: 'direct communication'
       },
       relational: {
-        trustIndicators: 'professional',
-        connectionPoints: 'contextual'
+        trust: 'medium',
+        connection: 'moderate'
       },
-      processing: {
-        location: 'heuristic',
-        note: 'Basic pattern matching'
-      }
+      overallRisk: 30,
+      recommendations: ['Communication appears standard'],
+      timestamp: new Date().toISOString(),
+      contentPreview: content.text.substring(0, 100) + '...',
+      source: 'fallback',
+      confidence: 0.5
     };
   }
 
-  requiresEnhancement(analysis) {
-    // Determine if analysis needs server enhancement
-    return (
-      analysis.emotional?.score < 30 ||
-      analysis.emotional?.score > 80 ||
-      analysis.strategic?.powerDynamics === 'high' ||
-      analysis.strategic?.hiddenAgendas === 'high'
+  async quickAnalysis(text) {
+    // Simple heuristic analysis for quick results
+    const riskWords = ['error', 'wrong', 'failed', 'problem', 'issue'];
+    const positiveWords = ['thanks', 'great', 'excellent', 'appreciate'];
+    
+    const riskCount = riskWords.filter(word => text.toLowerCase().includes(word)).length;
+    const positiveCount = positiveWords.filter(word => text.toLowerCase().includes(word)).length;
+    
+    const riskScore = Math.min(riskCount * 20, 100);
+    const positivityScore = Math.min(positiveCount * 25, 100);
+
+    return {
+      quickScore: Math.max(0, 100 - riskScore),
+      riskLevel: riskScore > 60 ? 'high' : riskScore > 30 ? 'medium' : 'low',
+      positivity: positivityScore,
+      hasSarcasm: this.detectQuickSarcasm(text),
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  detectQuickSarcasm(text) {
+    const sarcasmPatterns = [
+      'excellent.*but',
+      'great.*however', 
+      'perfect.*although',
+      'wonderful.*problem'
+    ];
+    
+    return sarcasmPatterns.some(pattern => 
+      new RegExp(pattern, 'i').test(text)
     );
   }
 
-  anonymizeForServer(analysis) {
-    // Remove any identifiable information before sending to server
-    return {
-      patterns: analysis.communicationPatterns,
-      metrics: {
-        toneScore: analysis.emotional?.score,
-        riskLevel: analysis.strategic?.riskLevel,
-        relationalScore: analysis.relational?.trustScore
-      },
-      // Never include:
-      // - Original text content
-      // - User identifiers
-      // - Specific context
-    };
+  generateCacheKey(content) {
+    return btoa(content.text).substring(0, 50);
   }
 
-  async secureServerEnhancement(anonymizedData) {
-    // Simulate secure server enhancement
-    // In real implementation, this would call a secure API endpoint
-    
+  async getUserPreferences() {
     return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          enhancedContext: 'Additional cultural and contextual insights',
-          riskAssessment: 'Comprehensive risk evaluation',
-          improvementSuggestions: [
-            'Consider more collaborative language',
-            'Add context for better clarity',
-            'Balance tone for professional impact'
-          ]
+      chrome.storage.local.get(['userPreferences'], (result) => {
+        resolve(result.userPreferences || {
+          analysisMode: 'quick',
+          enableSarcasmDetection: true,
+          privacyLevel: 'high'
         });
-      }, 500);
+      });
     });
   }
 
-  async advancedServerAnalysis(content) {
-    // Simulate advanced server analysis with multimodal capabilities
+  async updatePreferences(newPreferences) {
     return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          strategic: {
-            powerDynamics: 'analyzed',
-            hiddenAgendas: 'evaluated',
-            culturalContext: 'assessed'
-          },
-          emotional: {
-            tone: 'multidimensional_analysis',
-            sarcasmProbability: this.calculateSarcasmProbability(content),
-            emotionalComplexity: 'detailed_assessment'
-          },
-          relational: {
-            trustDynamics: 'comprehensive_evaluation',
-            connectionPotential: 'strategic_analysis'
-          },
-          multimodalInsights: {
-            textImageCongruence: 'assessed',
-            contextualAlignment: 'evaluated'
-          }
-        });
-      }, 800);
+      chrome.storage.local.set({ userPreferences: newPreferences }, () => {
+        resolve();
+      });
     });
   }
 
-  calculateSarcasmProbability(content) {
-    // Simple sarcasm probability calculation
-    const sarcasmIndicators = ['!', '...', '?', '😂', '😊', 'great', 'wonderful'];
-    const indicatorCount = sarcasmIndicators.filter(indicator => 
-      content.text.includes(indicator)
-    ).length;
+  async storeInHistory(analysis) {
+    const history = await this.getAnalysisHistory();
+    history.unshift(analysis);
     
-    return Math.min(100, indicatorCount * 20);
+    // Keep only last 50 analyses
+    const limitedHistory = history.slice(0, 50);
+    
+    chrome.storage.local.set({ analysisHistory: limitedHistory });
   }
 
-  async getUserConsent(feature) {
-    // Simulate user consent check
-    // In real implementation, this would show a consent dialog
+  async getAnalysisHistory() {
     return new Promise((resolve) => {
-      // For demo purposes, assume consent is given
-      resolve(true);
+      chrome.storage.local.get(['analysisHistory'], (result) => {
+        resolve(result.analysisHistory || []);
+      });
     });
   }
 
-  parseAIResponse(response) {
-    try {
-      if (typeof response === 'string') {
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          return JSON.parse(jsonMatch[0]);
-        }
+  createContextMenu() {
+    // Future feature: Right-click context menu for quick analysis
+    chrome.contextMenus.create({
+      id: 'analyzeText',
+      title: 'Analyze with Chalamandra',
+      contexts: ['selection']
+    });
+
+    chrome.contextMenus.onClicked.addListener((info, tab) => {
+      if (info.menuItemId === 'analyzeText' && info.selectionText) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'analyzeSelectedText',
+          text: info.selectionText
+        });
       }
-      return typeof response === 'object' ? response : {};
-    } catch (error) {
-      console.warn('Failed to parse AI response, using fallback');
-      return this.heuristicAnalysis({ text: '' });
-    }
+    });
   }
 }
 
-// Initialize the service worker
-const chalamandraServiceWorker = new ChalamandraServiceWorker();
+// Initialize the background manager
+const backgroundManager = new BackgroundManager();
 
 // Export for testing
 if (typeof module !== 'undefined') {
-  module.exports = { ChalamandraServiceWorker, HybridOrchestrator };
-            }
+  module.exports = BackgroundManager;
+}
