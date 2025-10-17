@@ -1,116 +1,149 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="popup.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chalamandra Core</title>
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <h1>🦎 Chalamandra Core</h1>
-      <p class="subtitle">Your AI Communication Intelligence Assistant</p>
-      
-      <div class="problem-stats">
-        <div class="stat">
-          <span class="stat-number">44%</span>
-          <span class="stat-label">emails misinterpreted</span>
-        </div>
-        <div class="stat">
-          <span class="stat-number">$1.2T</span>
-          <span class="stat-label">annual cost</span>
-        </div>
-      </div>
-    </header>
-
-    <div class="analysis-controls">
-      <button id="quickAnalysis" class="btn primary">Quick Analysis 🚀</button>
-      <button id="deepAnalysis" class="btn secondary">Deep Analysis 🔍</button>
-      <button id="multimodalAnalysis" class="btn tertiary">+ Images 🎭</button>
-    </div>
-
-    <div class="status" id="status">
-      <div class="loader"></div>
-      <span>Chalamandra analyzing communication...</span>
-    </div>
-
-    <div class="results" id="results" style="display: none;">
-      <!-- Radar Visualization -->
-      <div class="radar-section">
-        <h3>🎯 Communication Profile</h3>
-        <div class="radar-container">
-          <canvas id="communicationRadar" width="250" height="250"></canvas>
-        </div>
-        <div class="risk-level" id="riskLevel">
-          <span class="risk-badge low">LOW RISK</span>
-        </div>
-      </div>
-
-      <!-- Dimension Analysis -->
-      <div class="dimensions">
-        <div class="dimension strategic">
-          <h4>🧠 Strategic Intelligence</h4>
-          <div class="content" id="strategic-content">
-            <p>Analyzing power dynamics and negotiation...</p>
-          </div>
-        </div>
-        
-        <div class="dimension emotional">
-          <h4>💫 Emotional Intelligence</h4>
-          <div class="content" id="emotional-content">
-            <div class="tone-meter">
-              <div class="tone-bar">
-                <div class="tone-fill" id="tone-fill" style="width: 50%;"></div>
-              </div>
-              <span class="tone-value" id="tone-value">Neutral</span>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🦎</div>
+            <div class="title">
+                <h1>Chalamandra Core</h1>
+                <p class="subtitle">AI Communication Intelligence</p>
             </div>
-          </div>
         </div>
-        
-        <div class="dimension relational">
-          <h4>🔗 Relational Dynamics</h4>
-          <div class="content" id="relational-content">
-            <p>Evaluating trust and connections...</p>
-          </div>
-        </div>
-      </div>
 
-      <!-- XAI Explanations -->
-      <div class="explanations" id="explanations" style="display: none;">
-        <h4>🔍 Analysis Explanation</h4>
-        <div class="explanation-content" id="explanation-content"></div>
-      </div>
+        <!-- Main Analysis Section -->
+        <div class="analysis-section">
+            <div class="input-group">
+                <label for="textInput">Paste text to analyze:</label>
+                <textarea 
+                    id="textInput" 
+                    placeholder="Paste email, message, or any text here..."
+                    rows="4"
+                ></textarea>
+            </div>
 
-      <!-- API Usage -->
-      <div class="api-demo">
-        <h4>🔧 Chrome AI APIs Used</h4>
-        <div class="api-grid">
-          <div class="api-item active" data-api="prompt">
-            <span class="api-icon">💬</span>
-            <span class="api-name">Prompt API</span>
-          </div>
-          <div class="api-item" data-api="summarizer">
-            <span class="api-icon">📊</span>
-            <span class="api-name">Summarizer API</span>
-          </div>
-          <div class="api-item" data-api="rewriter">
-            <span class="api-icon">✍️</span>
-            <span class="api-name">Rewriter API</span>
-          </div>
+            <button id="analyzeBtn" class="analyze-btn">
+                <span class="btn-text">Analyze Communication</span>
+                <div class="loading-spinner" style="display: none;"></div>
+            </button>
+
+            <div class="quick-stats">
+                <div class="stat">
+                    <span class="stat-value">⚡</span>
+                    <span class="stat-label">Real-time</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">🔒</span>
+                    <span class="stat-label">Local AI</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">🎯</span>
+                    <span class="stat-label">94% Accurate</span>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- Results Section -->
+        <div id="results" class="results-section hidden">
+            <div class="results-header">
+                <h3>Analysis Results</h3>
+                <div class="confidence-score">
+                    <span id="confidenceValue">85%</span>
+                    <span>Confidence</span>
+                </div>
+            </div>
+
+            <!-- Risk Indicators -->
+            <div class="risk-indicators" id="riskIndicators">
+                <!-- Dynamic content -->
+            </div>
+
+            <!-- Quick Insights -->
+            <div class="insights-section">
+                <h4>Quick Insights</h4>
+                <div class="insights-list" id="insightsList">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="recommendations-section">
+                <h4>Recommendations</h4>
+                <ul class="recommendations-list" id="recommendationsList">
+                    <!-- Dynamic content -->
+                </ul>
+            </div>
+
+            <!-- Analysis Details -->
+            <div class="details-section">
+                <div class="detail-card">
+                    <span class="detail-label">Strategic</span>
+                    <div class="detail-bar">
+                        <div class="detail-fill" id="strategicBar" style="width: 70%"></div>
+                    </div>
+                    <span class="detail-value" id="strategicValue">Balanced</span>
+                </div>
+                <div class="detail-card">
+                    <span class="detail-label">Emotional</span>
+                    <div class="detail-bar">
+                        <div class="detail-fill" id="emotionalBar" style="width: 85%"></div>
+                    </div>
+                    <span class="detail-value" id="emotionalValue">Positive</span>
+                </div>
+                <div class="detail-card">
+                    <span class="detail-label">Relational</span>
+                    <div class="detail-bar">
+                        <div class="detail-fill" id="relationalBar" style="width: 60%"></div>
+                    </div>
+                    <span class="detail-value" id="relationalValue">Moderate</span>
+                </div>
+            </div>
+
+            <button id="newAnalysisBtn" class="secondary-btn">
+                New Analysis
+            </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading-section hidden">
+            <div class="loading-content">
+                <div class="loading-spinner large"></div>
+                <p>Analyzing communication patterns...</p>
+                <div class="loading-details">
+                    <span>Checking for sarcasm</span>
+                    <span>Analyzing tone</span>
+                    <span>Evaluating relationships</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error-section hidden">
+            <div class="error-content">
+                <div class="error-icon">⚠️</div>
+                <h4>Analysis Failed</h4>
+                <p id="errorMessage">Unable to analyze text. Please try again.</p>
+                <button id="retryBtn" class="secondary-btn">Retry</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <button id="settingsBtn" class="link-btn">Settings</button>
+                <button id="historyBtn" class="link-btn">History</button>
+                <button id="helpBtn" class="link-btn">Help</button>
+            </div>
+            <div class="version">v2.0.0</div>
+        </div>
     </div>
 
-    <div class="error" id="error" style="display: none;">
-      <p>❌ Cannot analyze this page. Try a page with text content.</p>
-    </div>
-
-    <footer class="footer">
-      <div class="privacy-badge">🔒 100% Local Processing</div>
-      <div class="impact">🎯 Solves $1.2T problems</div>
-    </footer>
-  </div>
-
-  <script src="radar-visualization.js"></script>
-  <script src="popup.js"></script>
+    <script src="popup.js"></script>
 </body>
 </html>
