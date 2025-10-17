@@ -1,140 +1,364 @@
-/* In-page styles for Chalamandra Core analysis enhancements */
+/* Chalamandra Core Content Script Styles */
 
-.chalamandra-highlight-positive {
-  background-color: rgba(78, 205, 196, 0.2);
-  border-left: 3px solid #4ecdc4;
-  padding: 2px 4px;
-  margin: 1px 0;
-  border-radius: 2px;
+/* Analysis Badge */
+.chalamandra-badge {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 12px;
+    pointer-events: auto;
 }
 
-.chalamandra-highlight-negative {
-  background-color: rgba(255, 107, 107, 0.2);
-  border-left: 3px solid #ff6b6b;
-  padding: 2px 4px;
-  margin: 1px 0;
-  border-radius: 2px;
-}
-
-.chalamandra-highlight-risk {
-  background-color: rgba(255, 167, 38, 0.2);
-  border-left: 3px solid #ffa726;
-  padding: 2px 4px;
-  margin: 1px 0;
-  border-radius: 2px;
-}
-
-.chalamandra-analysis-tooltip {
-  position: absolute;
-  background: rgba(22, 33, 62, 0.95);
-  border: 1px solid #ff6b35;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #e0e0e0;
-  z-index: 10001;
-  max-width: 250px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.chalamandra-analysis-tooltip::before {
-  content: '';
-  position: absolute;
-  top: -5px;
-  left: 10px;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 5px solid #ff6b35;
-}
-
-.chalamandra-tooltip-title {
-  color: #ff6b35;
-  font-weight: 600;
-  margin-bottom: 4px;
-  font-size: 11px;
-}
-
-.chalamandra-tooltip-content {
-  font-size: 11px;
-  line-height: 1.3;
-}
-
-/* Email client specific styles */
-.gmail-content .chalamandra-highlight-positive,
-.outlook-content .chalamandra-highlight-positive {
-  background-color: rgba(78, 205, 196, 0.15);
-}
-
-.gmail-content .chalamandra-highlight-negative,
-.outlook-content .chalamandra-highlight-negative {
-  background-color: rgba(255, 107, 107, 0.15);
-}
-
-/* LinkedIn specific styles */
-.linkedin-content .chalamandra-highlight-positive,
-.linkedin-content .chalamandra-highlight-negative {
-  border-radius: 4px;
-  padding: 1px 3px;
-}
-
-/* Slack/Discord specific styles */
-.slack-content .chalamandra-highlight-positive,
-.discord-content .chalamandra-highlight-positive {
-  background-color: rgba(78, 205, 196, 0.1);
-}
-
-.slack-content .chalamandra-highlight-negative,
-.discord-content .chalamandra-highlight-negative {
-  background-color: rgba(255, 107, 107, 0.1);
-}
-
-/* Animation for highlights */
-@keyframes chalamandraPulse {
-  0% { background-color: transparent; }
-  50% { background-color: rgba(255, 107, 53, 0.1); }
-  100% { background-color: transparent; }
-}
-
-.chalamandra-new-highlight {
-  animation: chalamandraPulse 2s ease-in-out;
-}
-
-/* Responsive design for overlay */
-@media (max-width: 768px) {
-  .chalamandra-overlay {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    max-width: none;
-  }
-  
-  .chalamandra-analysis-tooltip {
+.chalamandra-badge-content {
+    background: white;
+    border-radius: 6px;
+    padding: 8px 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-left: 3px solid #6c757d;
+    min-width: 140px;
     max-width: 200px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chalamandra-badge-content:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.chalamandra-badge-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.chalamandra-logo {
+    font-size: 14px;
+}
+
+.chalamandra-risk-level {
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+.chalamandra-risk-level.high {
+    background: #DC143C;
+    color: white;
+}
+
+.chalamandra-risk-level.medium {
+    background: #FFA500;
+    color: black;
+}
+
+.chalamandra-risk-level.low {
+    background: #2E8B57;
+    color: white;
+}
+
+.chalamandra-badge-body {
+    line-height: 1.3;
+}
+
+.chalamandra-score {
+    font-weight: 600;
     font-size: 11px;
-  }
+    margin-bottom: 2px;
+}
+
+.chalamandra-insight {
+    font-size: 10px;
+    opacity: 0.8;
+}
+
+/* Analysis Modal */
+.chalamandra-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.chalamandra-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.chalamandra-modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.chalamandra-modal.active .chalamandra-modal-content {
+    transform: scale(1);
+}
+
+.chalamandra-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.chalamandra-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.chalamandra-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.chalamandra-close:hover {
+    background-color: #f8f9fa;
+}
+
+.chalamandra-modal-body {
+    padding: 20px 24px;
+}
+
+/* Analysis Summary */
+.analysis-summary {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    color: white;
+}
+
+.overall-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.score-circle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score-value {
+    font-size: 32px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.score-label {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+.risk-level {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.risk-level.high {
+    background: rgba(220, 20, 60, 0.9);
+}
+
+.risk-level.medium {
+    background: rgba(255, 165, 0, 0.9);
+    color: black;
+}
+
+.risk-level.low {
+    background: rgba(46, 139, 87, 0.9);
+}
+
+/* Analysis Details */
+.analysis-details {
+    margin-bottom: 24px;
+}
+
+.detail-category {
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #667eea;
+}
+
+.detail-category h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.detail-category p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #6c757d;
+}
+
+/* Recommendations */
+.recommendations h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.recommendations ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.recommendations li {
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #6c757d;
+}
+
+/* Quick Analysis Notification */
+.chalamandra-quick-analysis {
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.quick-analysis-content {
+    line-height: 1.4;
+}
+
+.quick-analysis-content strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #1a1a2e;
+}
+
+.quick-analysis-content p {
+    margin: 0 0 4px 0;
+    font-size: 13px;
+    color: #495057;
+}
+
+.quick-analysis-content small {
+    font-size: 11px;
+    color: #6c757d;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .chalamandra-modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .overall-score {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .chalamandra-badge {
+        max-width: 160px;
+    }
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .chalamandra-overlay {
-    background: rgba(12, 12, 12, 0.95);
-  }
-  
-  .chalamandra-analysis-tooltip {
-    background: rgba(12, 12, 12, 0.95);
-  }
+    .chalamandra-badge-content {
+        background: #2d3748;
+        color: #e2e8f0;
+        border-left-color: #4a5568;
+    }
+    
+    .chalamandra-modal-content {
+        background: #2d3748;
+        color: #e2e8f0;
+    }
+    
+    .chalamandra-modal-header {
+        border-bottom-color: #4a5568;
+    }
+    
+    .chalamandra-modal-header h3 {
+        color: #e2e8f0;
+    }
+    
+    .detail-category {
+        background: #4a5568;
+        border-left-color: #667eea;
+    }
+    
+    .detail-category h4 {
+        color: #e2e8f0;
+    }
+    
+    .detail-category p {
+        color: #cbd5e0;
+    }
+    
+    .recommendations h4 {
+        color: #e2e8f0;
+    }
+    
+    .recommendations li {
+        color: #cbd5e0;
+    }
 }
 
-/* Print styles - hide analysis elements when printing */
-@media print {
-  .chalamandra-overlay,
-  .chalamandra-analysis-tooltip,
-  .chalamandra-highlight-positive,
-  .chalamandra-highlight-negative,
-  .chalamandra-highlight-risk {
-    display: none !important;
-  }
+/* Integration with popular email clients */
+.gmail-content .chalamandra-badge,
+.outlook-content .chalamandra-badge,
+.email-body .chalamandra-badge {
+    position: relative !important;
+    margin-left: 10px;
+}
+
+/* Ensure badges don't break email layouts */
+[role="main"] .chalamandra-badge,
+[role="article"] .chalamandra-badge {
+    position: absolute !important;
 }
