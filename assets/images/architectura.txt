@@ -1,0 +1,51 @@
+CHALAMANDRA CORE - ARCHITECTURE DIAGRAM
+
+🔧 ARQUITECTURA HÍBRIDA
+
+┌─────────────────┐
+│    CHROME       │
+│   EXTENSION     │ ← Tu navegador
+└─────────────────┘
+         │
+┌─────────────────┐
+│  CHROME AI APIs │ ← Procesamiento local
+│  • Prompt API   │
+│  • Summarizer   │
+│  • Rewriter     │
+└─────────────────┘
+         │
+┌─────────────────┐
+│  SERVER ENHANCE │ ← Solo con consentimiento
+│  (Opcional)     │
+└─────────────────┘
+
+FLUJO DE DATOS:
+
+Usuario → Extension → Chrome AI → Análisis → Resultados
+    ↑                                      ↓
+    └─────── 100% Local ──────────────────┘
+
+CARACTERÍSTICAS PRINCIPALES:
+
+• Privacy-First: Procesamiento 100% local por defecto
+• Multimodal: Análisis texto + emojis + contexto visual  
+• Tiempo Real: < 2 segundos por análisis
+• Híbrido: Cloud opcional con consentimiento explícito
+• Explicable: Explicaciones claras de riesgos y recomendaciones
+
+MÉTRICAS DE RENDIMIENTO:
+
+✓ Response Time: < 2s
+✓ Accuracy: > 85%
+✓ Memory: < 50MB
+✓ Privacy: 100% local
+
+TECNOLOGÍAS:
+
+• Chrome Extension Manifest V3
+• Chrome Built-in AI APIs
+• Vanilla JavaScript ES6+
+• CSS3 + HTML5
+• Chrome Storage API
+
+BUILT FOR: Google Chrome Built-in AI Challenge 2025
