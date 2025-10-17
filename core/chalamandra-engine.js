@@ -3,7 +3,6 @@ class ChalamandraEngine {
     this.sarcasmDetector = new SarcasmDetector();
     this.multimodalAnalyzer = new MultimodalAnalyzer();
     this.explainableAI = new ExplainableAI();
-    this.hybridOrchestrator = new HybridOrchestrator();
   }
 
   async analyzeCommunication(content, mode = 'quick') {
@@ -122,4 +121,74 @@ class ChalamandraEngine {
       return this.heuristicAnalysis();
     }
   }
+
+  calculateRisks(analyses) {
+    const risks = [];
+    
+    if (this.average(analyses, 'sarcasm') > 70) {
+      risks.push({
+        type: 'sarcasm',
+        level: 'high',
+        message: 'High probability of sarcasm detected',
+        impact: 'May damage professional relationships'
+      });
+    }
+    
+    if (this.average(analyses, 'relationalRisk') > 60) {
+      risks.push({
+        type: 'relational',
+        level: 'medium',
+        message: 'Communication may harm team dynamics',
+        impact: 'Could reduce collaboration effectiveness'
+      });
+    }
+    
+    return risks;
   }
+
+  generateRecommendations(analyses) {
+    const recommendations = [];
+    const sarcasmScore = this.average(analyses, 'sarcasm');
+    const clarityScore = this.average(analyses, 'clarity');
+    
+    if (sarcasmScore > 70) {
+      recommendations.push({
+        priority: 'high',
+        action: 'Rephrase message to be more direct',
+        reason: 'High sarcasm detection may cause misunderstandings'
+      });
+    }
+    
+    if (clarityScore < 60) {
+      recommendations.push({
+        priority: 'medium',
+        action: 'Simplify language and be more specific',
+        reason: 'Low clarity score detected'
+      });
+    }
+    
+    return recommendations;
+  }
+
+  combineExplanations(analyses) {
+    return {
+      summary: 'Multidimensional communication analysis completed',
+      dimensions: ['strategic', 'emotional', 'relational'],
+      confidence: this.average(analyses, 'confidence') || 0.7,
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  fallbackAnalysis(content) {
+    console.warn('Using fallback analysis');
+    return {
+      ...this.heuristicAnalysis(content),
+      fallback: true,
+      confidence: 0.5
+    };
+  }
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = ChalamandraEngine;
+}
