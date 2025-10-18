@@ -173,8 +173,4 @@ class SarcasmDetector {
       return this.heuristicVisualAnalysis({});
     }
   }
-}
-
-if (typeof module !== 'undefined') {
-  module.exports = SarcasmDetector;
-      }
+                      }
